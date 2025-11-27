@@ -34,7 +34,13 @@ function pns_cars_setup() {
 add_action( 'after_setup_theme', 'pns_cars_setup' );
 
 /**
- * 2. Enqueue Assets
+ * 2. Include Blocks
+ */
+require_once get_template_directory() . '/includes/class-blocks.php';
+require_once get_template_directory() . '/includes/block-debug.php';
+
+/**
+ * 3. Enqueue Assets
  */
 function pns_cars_scripts() {
 	$version = wp_get_theme()->get( 'Version' );
@@ -51,21 +57,11 @@ function pns_cars_scripts() {
 add_action( 'wp_enqueue_scripts', 'pns_cars_scripts' );
 
 /**
- * 3. ACF Options Page & Fields
+ * 4. ACF Options Page & Fields
+ * Note: Options page removed - blocks now manage their own data
  */
 if ( function_exists( 'acf_add_options_page' ) ) {
-
-	// Add Options Page
-	acf_add_options_page( array(
-		'page_title' 	=> 'PNS Cars Settings',
-		'menu_title'	=> 'PNS Cars',
-		'menu_slug' 	=> 'pns-cars-settings',
-		'capability'	=> 'edit_posts',
-		'redirect'		=> false,
-		'icon_url'      => 'dashicons-car',
-	) );
-
-	// Register Fields Programmatically
+	// Register Fields Programmatically (fields still needed for block fallbacks)
 	add_action( 'acf/init', 'pns_cars_register_fields' );
 }
 
@@ -331,13 +327,8 @@ function pns_cars_register_fields() {
 			),
 		),
 		'location' => array(
-			array(
-				array(
-					'param' => 'options_page',
-					'operator' => '==',
-					'value' => 'pns-cars-settings',
-				),
-			),
+			// Fields are registered but not attached to any options page
+			// They're used as fallbacks in block render files
 		),
 	) );
 }
@@ -455,4 +446,190 @@ function pns_cars_seed_content() {
 	// Mark as seeded
 	update_option( 'pns_cars_seeded', true );
 }
+
+/**
+ * Create homepage with Gutenberg blocks on theme activation
+ * Only creates if the page doesn't exist
+ */
+function pns_cars_create_homepage_with_blocks() {
+	// Check if homepage already exists by slug
+	$homepage = get_page_by_path( 'home' );
+	
+	// Also check if there's already a page set as front page
+	$front_page_id = get_option( 'page_on_front' );
+	if ( $front_page_id ) {
+		$front_page = get_post( $front_page_id );
+		if ( $front_page && $front_page->post_type === 'page' ) {
+			// Homepage already exists and is set
+			return;
+		}
+	}
+	
+	// Check if a page with blocks template exists
+	if ( ! $homepage ) {
+		$existing_pages = get_posts( array(
+			'post_type' => 'page',
+			'post_status' => 'any',
+			'meta_key' => '_wp_page_template',
+			'meta_value' => 'page-blocks.php',
+			'posts_per_page' => 1,
+		) );
+		if ( ! empty( $existing_pages ) ) {
+			// Page with blocks template already exists
+			return;
+		}
+	} else {
+		// Homepage exists, don't create
+		return;
+	}
+
+	// Create block content
+	$blocks = array();
+
+	// Hero Block
+	$blocks[] = array(
+		'blockName' => 'pns-cars/hero',
+		'attrs' => array(
+			'headline' => get_field( 'hero_headline', 'option' ) ?: 'Drive today. Earn this week.',
+			'subheadline' => get_field( 'hero_subheadline', 'option' ) ?: 'Get behind the wheel of a reliable vehicle and start earning with Uber, Lyft, and DoorDash immediately. No credit checks, easy approval.',
+			'ctaPrimary' => get_field( 'hero_cta_primary', 'option' ) ?: 'View Available Vehicles',
+			'ctaSecondary' => get_field( 'hero_cta_secondary', 'option' ) ?: 'Start Your Booking',
+		),
+		'innerBlocks' => array(),
+		'innerContent' => array(),
+	);
+
+	// How It Works Block
+	$steps_data = array();
+	if ( function_exists( 'have_rows' ) && have_rows( 'steps', 'option' ) ) {
+		while ( have_rows( 'steps', 'option' ) ) {
+			the_row();
+			$steps_data[] = array(
+				'title' => get_sub_field( 'title' ) ?: '',
+				'description' => get_sub_field( 'description' ) ?: '',
+				'icon' => get_sub_field( 'icon' ) ?: '',
+			);
+		}
+	}
+	$blocks[] = array(
+		'blockName' => 'pns-cars/how-it-works',
+		'attrs' => array(
+			'heading' => get_field( 'how_it_works_heading', 'option' ) ?: 'How It Works',
+			'steps' => $steps_data,
+		),
+		'innerBlocks' => array(),
+		'innerContent' => array(),
+	);
+
+	// Services Block
+	$services_data = array();
+	if ( function_exists( 'have_rows' ) && have_rows( 'services_list', 'option' ) ) {
+		while ( have_rows( 'services_list', 'option' ) ) {
+			the_row();
+			$services_data[] = array(
+				'title' => get_sub_field( 'title' ) ?: '',
+				'description' => get_sub_field( 'description' ) ?: '',
+			);
+		}
+	}
+	$blocks[] = array(
+		'blockName' => 'pns-cars/services',
+		'attrs' => array(
+			'heading' => get_field( 'services_heading', 'option' ) ?: 'Benefits for Drivers',
+			'services' => $services_data,
+		),
+		'innerBlocks' => array(),
+		'innerContent' => array(),
+	);
+
+	// Vehicles Block
+	$blocks[] = array(
+		'blockName' => 'pns-cars/vehicles',
+		'attrs' => array(
+			'heading' => get_field( 'vehicles_heading', 'option' ) ?: 'Available Vehicles',
+			'count' => get_field( 'vehicles_count', 'option' ) ?: -1,
+			'perRow' => get_field( 'vehicles_per_row', 'option' ) ?: 3,
+		),
+		'innerBlocks' => array(),
+		'innerContent' => array(),
+	);
+
+	// Pricing Block
+	$blocks[] = array(
+		'blockName' => 'pns-cars/pricing',
+		'attrs' => array(
+			'headline' => get_field( 'pricing_headline', 'option' ) ?: 'Simple, Transparent Pricing',
+			'content' => get_field( 'pricing_content', 'option' ) ?: '<p>No hidden fees. One weekly price covers the car, insurance, and maintenance.</p><ul><li>$250 Refundable Deposit</li><li>Weekly automatic payments</li><li>Minimum 2-week rental</li></ul>',
+		),
+		'innerBlocks' => array(),
+		'innerContent' => array(),
+	);
+
+	// FAQ Block
+	$faqs_data = array();
+	if ( function_exists( 'have_rows' ) && have_rows( 'faqs', 'option' ) ) {
+		while ( have_rows( 'faqs', 'option' ) ) {
+			the_row();
+			$faqs_data[] = array(
+				'question' => get_sub_field( 'question' ) ?: '',
+				'answer' => get_sub_field( 'answer' ) ?: '',
+			);
+		}
+	}
+	$blocks[] = array(
+		'blockName' => 'pns-cars/faq',
+		'attrs' => array(
+			'heading' => get_field( 'faq_heading', 'option' ) ?: 'Frequently Asked Questions',
+			'faqs' => $faqs_data,
+		),
+		'innerBlocks' => array(),
+		'innerContent' => array(),
+	);
+
+	// Location Block
+	$blocks[] = array(
+		'blockName' => 'pns-cars/location',
+		'attrs' => array(
+			'heading' => get_field( 'location_heading', 'option' ) ?: 'Find Us',
+			'addressText' => get_field( 'address_text', 'option' ) ?: "PNS Global Resources L.L.C\n5872 New Peachtree Rd Ste 103\nDoraville, GA 30340\n\nServing the Atlanta Metro Area",
+			'mapLink' => get_field( 'map_link', 'option' ) ?: 'https://goo.gl/maps/place/5872+New+Peachtree+Rd+Ste+103,+Doraville,+GA+30340',
+			'googleMapsEmbedUrl' => get_field( 'google_maps_embed_url', 'option' ) ?: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d17969.587510091234!2d-84.29384894259061!3d33.90250098033048!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x88f509c59cbfffff%3A0xfb53040bca7eb8ed!2s5872%20New%20Peachtree%20Rd%20Ste%20103%2C%20Doraville%2C%20GA%2030340!5e0!3m2!1sen!2sus!4v1764203567826!5m2!1sen!2sus',
+		),
+		'innerBlocks' => array(),
+		'innerContent' => array(),
+	);
+
+	// Convert blocks to block markup
+	$block_content = '';
+	foreach ( $blocks as $block ) {
+		$block_content .= serialize_block( $block );
+	}
+
+	// Create homepage with all blocks
+	$post_data = array(
+		'post_title' => 'Home',
+		'post_name' => 'home',
+		'post_content' => $block_content,
+		'post_status' => 'publish',
+		'post_type' => 'page',
+		'post_author' => 1,
+	);
+	
+	$homepage_id = wp_insert_post( $post_data );
+	
+	if ( $homepage_id && ! is_wp_error( $homepage_id ) ) {
+		// Set the blocks template
+		update_post_meta( $homepage_id, '_wp_page_template', 'page-blocks.php' );
+		
+		// Set as homepage
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', $homepage_id );
+	}
+}
+
+/**
+ * Hook: Create homepage with blocks on theme activation
+ * Only fires if the page doesn't exist
+ */
+add_action( 'after_switch_theme', 'pns_cars_create_homepage_with_blocks' );
 add_action( 'after_switch_theme', 'pns_cars_seed_content' );

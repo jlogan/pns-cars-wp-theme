@@ -1,0 +1,40 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 2,
+	"name": "pns-cars/how-it-works",
+	"title": "How It Works",
+	"category": "pns-cars",
+	"icon": "list-view",
+	"description": "How it works section with steps",
+	"supports": {
+		"html": false
+	},
+	"attributes": {
+		"heading": {
+			"type": "string",
+			"default": "How It Works"
+		},
+		"steps": {
+			"type": "array",
+			"default": [
+				{
+					"title": "Pick Your Car",
+					"description": "Browse our fleet of hybrid and gas-saver vehicles perfect for rideshare.",
+					"icon": "🚗"
+				},
+				{
+					"title": "Submit Request",
+					"description": "Fill out a simple application. We approve drivers fast.",
+					"icon": "📝"
+				},
+				{
+					"title": "Drive & Earn",
+					"description": "Pick up your keys and start making money on your favorite platforms.",
+					"icon": "💸"
+				}
+			]
+		}
+	},
+	"render": "file:./render.php"
+}
+

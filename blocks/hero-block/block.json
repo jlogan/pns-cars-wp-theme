@@ -1,0 +1,32 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 2,
+	"name": "pns-cars/hero",
+	"title": "Hero Section",
+	"category": "pns-cars",
+	"icon": "car",
+	"description": "Hero section with headline, subheadline, and CTAs",
+	"supports": {
+		"html": false
+	},
+	"attributes": {
+		"headline": {
+			"type": "string",
+			"default": "Drive today. Earn this week."
+		},
+		"subheadline": {
+			"type": "string",
+			"default": "Get behind the wheel of a reliable vehicle and start earning with Uber, Lyft, and DoorDash immediately. No credit checks, easy approval."
+		},
+		"ctaPrimary": {
+			"type": "string",
+			"default": "View Available Vehicles"
+		},
+		"ctaSecondary": {
+			"type": "string",
+			"default": "Start Your Booking"
+		}
+	},
+	"render": "file:./render.php"
+}
+

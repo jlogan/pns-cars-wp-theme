@@ -1,0 +1,37 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 2,
+	"name": "pns-cars/services",
+	"title": "Services",
+	"category": "pns-cars",
+	"icon": "star-filled",
+	"description": "Services section with service cards",
+	"supports": {
+		"html": false
+	},
+	"attributes": {
+		"heading": {
+			"type": "string",
+			"default": "Benefits for Drivers"
+		},
+		"services": {
+			"type": "array",
+			"default": [
+				{
+					"title": "Weekly Rentals",
+					"description": "Flexible weekly terms designed for gig economy cash flow. No long-term lock-in."
+				},
+				{
+					"title": "Unlimited Miles",
+					"description": "Drive as much as you need within Georgia. No mileage caps for earners."
+				},
+				{
+					"title": "Maintenance Included",
+					"description": "We cover oil changes, tires, and routine maintenance so you keep earning."
+				}
+			]
+		}
+	},
+	"render": "file:./render.php"
+}
+

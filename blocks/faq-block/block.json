@@ -1,0 +1,37 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 2,
+	"name": "pns-cars/faq",
+	"title": "FAQ",
+	"category": "pns-cars",
+	"icon": "editor-help",
+	"description": "FAQ section with questions and answers",
+	"supports": {
+		"html": false
+	},
+	"attributes": {
+		"heading": {
+			"type": "string",
+			"default": "Frequently Asked Questions"
+		},
+		"faqs": {
+			"type": "array",
+			"default": [
+				{
+					"question": "What documents do I need?",
+					"answer": "You need a valid driver's license, proof of address, and an active account with a rideshare or delivery platform."
+				},
+				{
+					"question": "Is insurance included?",
+					"answer": "Yes, we provide the necessary commercial insurance required for rideshare driving."
+				},
+				{
+					"question": "How do payments work?",
+					"answer": "Payments are made weekly via card. A refundable deposit is required at signing."
+				}
+			]
+		}
+	},
+	"render": "file:./render.php"
+}
+

@@ -1,0 +1,24 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 2,
+	"name": "pns-cars/pricing",
+	"title": "Pricing",
+	"category": "pns-cars",
+	"icon": "money-alt",
+	"description": "Pricing section",
+	"supports": {
+		"html": false
+	},
+	"attributes": {
+		"headline": {
+			"type": "string",
+			"default": "Simple, Transparent Pricing"
+		},
+		"content": {
+			"type": "string",
+			"default": "<p>No hidden fees. One weekly price covers the car, insurance, and maintenance.</p><ul><li>$250 Refundable Deposit</li><li>Weekly automatic payments</li><li>Minimum 2-week rental</li></ul>"
+		}
+	},
+	"render": "file:./render.php"
+}
+
