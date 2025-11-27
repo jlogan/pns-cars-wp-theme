@@ -277,6 +277,13 @@ function pns_cars_register_fields() {
 				'name' => 'map_link',
 				'type' => 'url',
 			),
+			array(
+				'key' => 'field_google_maps_embed_url',
+				'label' => 'Google Maps Embed URL',
+				'name' => 'google_maps_embed_url',
+				'type' => 'text',
+				'instructions' => 'Paste the "src" attribute from the Google Maps embed iframe code here.',
+			),
 
 			// Tab: Contact
 			array(
@@ -319,6 +326,14 @@ function pns_cars_seed_content() {
 
 	// Check if already seeded
 	if ( get_option( 'pns_cars_seeded' ) ) {
+        // Force update the map URL if it's the old placeholder one, even if already seeded
+        // This is a quick patch to ensure the user sees the map without needing to reset the whole theme
+        $current_map = get_field('google_maps_embed_url', 'option');
+        $new_map = 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d17969.587510091234!2d-84.29384894259061!3d33.90250098033048!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x88f509c59cbfffff%3A0xfb53040bca7eb8ed!2s5872%20New%20Peachtree%20Rd%20Ste%20103%2C%20Doraville%2C%20GA%2030340!5e0!3m2!1sen!2sus!4v1764203567826!5m2!1sen!2sus';
+        
+        if($current_map !== $new_map) {
+             update_field( 'google_maps_embed_url', $new_map, 'option' );
+        }
 		return;
 	}
 
@@ -401,7 +416,8 @@ function pns_cars_seed_content() {
 
 	$location = array(
 		'address_text' => "PNS Global Resources L.L.C\n5872 New Peachtree Rd Ste 103\nDoraville, GA 30340\n\nServing the Atlanta Metro Area",
-		'map_link'     => 'https://goo.gl/maps/placeholder',
+		'map_link'     => 'https://goo.gl/maps/place/5872+New+Peachtree+Rd+Ste+103,+Doraville,+GA+30340',
+		'embed_url'    => 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d17969.587510091234!2d-84.29384894259061!3d33.90250098033048!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x88f509c59cbfffff%3A0xfb53040bca7eb8ed!2s5872%20New%20Peachtree%20Rd%20Ste%20103%2C%20Doraville%2C%20GA%2030340!5e0!3m2!1sen!2sus!4v1764203567826!5m2!1sen!2sus',
 	);
 
 	// Update Fields
@@ -422,6 +438,7 @@ function pns_cars_seed_content() {
 	// Location
 	update_field( 'address_text', $location['address_text'], $option_id );
 	update_field( 'map_link', $location['map_link'], $option_id );
+	update_field( 'google_maps_embed_url', $location['embed_url'], $option_id );
 
 	// Contact
 	update_field( 'contact_email', 'rentals@pnscars.com', $option_id );
@@ -435,4 +452,3 @@ function pns_cars_seed_content() {
 	update_option( 'pns_cars_seeded', true );
 }
 add_action( 'after_switch_theme', 'pns_cars_seed_content' );
-

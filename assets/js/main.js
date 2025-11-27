@@ -3,32 +3,81 @@ document.addEventListener('DOMContentLoaded', function() {
     // Smooth Scrolling for Anchors
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
-            e.preventDefault();
             const targetId = this.getAttribute('href');
+            if(targetId === '#') return;
+
             const targetElement = document.querySelector(targetId);
             
             if (targetElement) {
-                targetElement.scrollIntoView({
-                    behavior: 'smooth'
+                e.preventDefault();
+                // Account for fixed header
+                const headerOffset = 80; 
+                const elementPosition = targetElement.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: "smooth"
                 });
-                
-                // Close mobile menu if open
-                // (Implement mobile menu toggle logic here if needed)
             }
         });
     });
 
-    // Intersection Observer for Fade In Animations
+    // Header Scroll Effect
+    const header = document.querySelector('.site-header');
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 50) {
+            header.classList.add('scrolled');
+        } else {
+            header.classList.remove('scrolled');
+        }
+    });
+
+    // Animated Counter for Earnings
+    const animateCounters = () => {
+        const counters = document.querySelectorAll('.counter');
+        counters.forEach(counter => {
+            const target = parseFloat(counter.getAttribute('data-target'));
+            const duration = 2000; // 2 seconds
+            const start = 0;
+            const startTime = performance.now();
+
+            const updateCounter = (currentTime) => {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Easing function (easeOutQuart)
+                const ease = 1 - Math.pow(1 - progress, 4);
+                
+                const current = start + (target - start) * ease;
+                counter.innerText = current.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                if (progress < 1) {
+                    requestAnimationFrame(updateCounter);
+                }
+            };
+
+            requestAnimationFrame(updateCounter);
+        });
+    };
+
+    // Intersection Observer
     const observerOptions = {
         root: null,
         rootMargin: '0px',
-        threshold: 0.1
+        threshold: 0.15
     };
 
     const observer = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('visible');
+                
+                // Trigger counter if inside
+                if(entry.target.querySelector('.counter')) {
+                    animateCounters();
+                }
+
                 observer.unobserve(entry.target);
             }
         });
@@ -40,22 +89,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // FAQ Accordion
     const faqItems = document.querySelectorAll('.faq-item');
-    
     faqItems.forEach(item => {
         const question = item.querySelector('.faq-question');
         question.addEventListener('click', () => {
-            // Close others (optional - strictly speaking accordion vs toggle)
+            const isActive = item.classList.contains('active');
+            
             faqItems.forEach(otherItem => {
-                if(otherItem !== item) {
-                    otherItem.classList.remove('active');
-                }
+                otherItem.classList.remove('active');
+                // Reset inline styles if any
+                // otherItem.querySelector('.faq-answer').style.maxHeight = null;
             });
 
-            item.classList.toggle('active');
+            if (!isActive) {
+                item.classList.add('active');
+            }
         });
     });
 
-    // Simple Drag/Scroll for Vehicle Slider (Desktop mouse support)
+    // Vehicle Slider Drag (Desktop)
     const slider = document.querySelector('.vehicle-slider-container');
     let isDown = false;
     let startX;
@@ -80,10 +131,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!isDown) return;
             e.preventDefault();
             const x = e.pageX - slider.offsetLeft;
-            const walk = (x - startX) * 2; // scroll-fast
+            const walk = (x - startX) * 2;
             slider.scrollLeft = scrollLeft - walk;
         });
     }
 
 });
-

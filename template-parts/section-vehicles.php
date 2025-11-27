@@ -1,5 +1,4 @@
-<?php
-if( have_rows('vehicles_list', 'option') ): ?>
+<?php if( have_rows('vehicles_list', 'option') ): ?>
 <section class="section-padding" id="vehicles">
     <div class="container">
         <div class="d-flex justify-between align-center mb-2">
@@ -20,8 +19,8 @@ if( have_rows('vehicles_list', 'option') ): ?>
                         </div>
                         <div class="vehicle-content">
                             <h3><?php the_sub_field('name'); ?></h3>
-                            <div class="vehicle-price"><?php the_sub_field('rate'); ?></div>
-                            <a href="#contact" class="btn btn-primary" style="width: 100%; display: block; margin-top: 1rem;">Book This Car</a>
+                            <div class="vehicle-price"><?php the_sub_field('rate'); ?> <span>/ week</span></div>
+                            <a href="#booking" class="btn btn-primary" style="width: 100%; display: block;">Book This Car</a>
                         </div>
                     </div>
                 <?php endwhile; ?>
@@ -30,4 +29,3 @@ if( have_rows('vehicles_list', 'option') ): ?>
     </div>
 </section>
 <?php endif; ?>
-

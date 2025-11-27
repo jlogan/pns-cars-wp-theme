@@ -23,8 +23,10 @@ get_header();
 <!-- 6. FAQ -->
 <?php get_template_part( 'template-parts/section', 'faq' ); ?>
 
-<!-- 7. Map/Location -->
+<!-- 7. Booking Anchor -->
+<div id="booking"></div> <!-- Hidden anchor for booking scroll -->
+
+<!-- 8. Map/Location -->
 <?php get_template_part( 'template-parts/section', 'location' ); ?>
 
 <?php get_footer(); ?>
-
