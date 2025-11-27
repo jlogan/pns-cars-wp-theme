@@ -117,6 +117,14 @@ function pns_cars_register_fields() {
 				'type' => 'tab',
 			),
 			array(
+				'key' => 'field_how_it_works_heading',
+				'label' => 'Section Heading',
+				'name' => 'how_it_works_heading',
+				'type' => 'text',
+				'default_value' => 'How It Works',
+				'instructions' => 'Heading text displayed above the steps section',
+			),
+			array(
 				'key' => 'field_steps',
 				'label' => 'Steps',
 				'name' => 'steps',
@@ -153,6 +161,14 @@ function pns_cars_register_fields() {
 				'type' => 'tab',
 			),
 			array(
+				'key' => 'field_services_heading',
+				'label' => 'Section Heading',
+				'name' => 'services_heading',
+				'type' => 'text',
+				'default_value' => 'Benefits for Drivers',
+				'instructions' => 'Heading text displayed above the services section',
+			),
+			array(
 				'key' => 'field_services_list',
 				'label' => 'Service Cards',
 				'name' => 'services_list',
@@ -180,37 +196,31 @@ function pns_cars_register_fields() {
 				'type' => 'tab',
 			),
 			array(
-				'key' => 'field_vehicles_list',
-				'label' => 'Vehicles List',
-				'name' => 'vehicles_list',
-				'type' => 'repeater',
-				'sub_fields' => array(
-					array(
-						'key' => 'field_vehicle_name',
-						'label' => 'Year Make Model',
-						'name' => 'name',
-						'type' => 'text',
-					),
-					array(
-						'key' => 'field_vehicle_rate',
-						'label' => 'Weekly Rate',
-						'name' => 'rate',
-						'type' => 'text',
-					),
-					array(
-						'key' => 'field_vehicle_tag',
-						'label' => 'Tag',
-						'name' => 'tag',
-						'type' => 'text',
-					),
-					array(
-						'key' => 'field_vehicle_image',
-						'label' => 'Image URL', // Using text for simplicity in seeding, ideally Image Object
-						'name' => 'image_url',
-						'type' => 'text',
-						'instructions' => 'Enter external image URL for demo purposes.',
-					),
-				),
+				'key' => 'field_vehicles_heading',
+				'label' => 'Section Heading',
+				'name' => 'vehicles_heading',
+				'type' => 'text',
+				'default_value' => 'Available Vehicles',
+				'instructions' => 'Heading text displayed above the vehicles grid',
+			),
+			array(
+				'key' => 'field_vehicles_count',
+				'label' => 'Number of Items to Show',
+				'name' => 'vehicles_count',
+				'type' => 'number',
+				'default_value' => -1,
+				'instructions' => 'Number of vehicles to display in the grid. Use -1 to show all available vehicles.',
+				'min' => -1,
+			),
+			array(
+				'key' => 'field_vehicles_per_row',
+				'label' => 'Items Per Row',
+				'name' => 'vehicles_per_row',
+				'type' => 'number',
+				'default_value' => 3,
+				'instructions' => 'Number of vehicle cards to display per row in the grid',
+				'min' => 1,
+				'max' => 6,
 			),
 
 			// Tab: Pricing
@@ -239,6 +249,14 @@ function pns_cars_register_fields() {
 				'type' => 'tab',
 			),
 			array(
+				'key' => 'field_faq_heading',
+				'label' => 'Section Heading',
+				'name' => 'faq_heading',
+				'type' => 'text',
+				'default_value' => 'Frequently Asked Questions',
+				'instructions' => 'Heading text displayed above the FAQ section',
+			),
+			array(
 				'key' => 'field_faqs',
 				'label' => 'FAQs',
 				'name' => 'faqs',
@@ -264,6 +282,14 @@ function pns_cars_register_fields() {
 				'key' => 'field_tab_location',
 				'label' => 'Location',
 				'type' => 'tab',
+			),
+			array(
+				'key' => 'field_location_heading',
+				'label' => 'Section Heading',
+				'name' => 'location_heading',
+				'type' => 'text',
+				'default_value' => 'Find Us',
+				'instructions' => 'Heading text displayed in the location section',
 			),
 			array(
 				'key' => 'field_address_text',
@@ -378,27 +404,6 @@ function pns_cars_seed_content() {
 		),
 	);
 
-	$vehicles = array(
-		array(
-			'name' => '2020 Toyota Prius',
-			'rate' => '$280 / week',
-			'tag'  => 'Best for Uber',
-			'image_url' => 'https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&q=80&w=800',
-		),
-		array(
-			'name' => '2021 Hyundai Elantra',
-			'rate' => '$260 / week',
-			'tag'  => 'Great Gas Mileage',
-			'image_url' => 'https://images.unsplash.com/photo-1609521263047-f8f205293f24?auto=format&fit=crop&q=80&w=800',
-		),
-		array(
-			'name' => '2019 Toyota Camry',
-			'rate' => '$290 / week',
-			'tag'  => 'Comfort Ride',
-			'image_url' => 'https://images.unsplash.com/photo-1621007947382-bb3c3968e3bb?auto=format&fit=crop&q=80&w=800',
-		),
-	);
-
 	$faqs = array(
 		array(
 			'question' => 'What documents do I need?',
@@ -432,7 +437,6 @@ function pns_cars_seed_content() {
 	// Repeaters need special handling usually, but update_field handles arrays for repeaters well if structure matches.
 	update_field( 'steps', $steps, $option_id );
 	update_field( 'services_list', $services, $option_id );
-	update_field( 'vehicles_list', $vehicles, $option_id );
 	update_field( 'faqs', $faqs, $option_id );
 
 	// Location

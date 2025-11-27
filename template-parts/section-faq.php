@@ -1,7 +1,7 @@
 <?php if( have_rows('faqs', 'option') ): ?>
 <section class="section-padding" id="faq">
     <div class="container faq-container">
-        <h2 class="section-title text-center mb-2 fade-in-up">Frequently Asked Questions</h2>
+        <h2 class="section-title text-center mb-2 fade-in-up"><?php echo esc_html( get_field( 'faq_heading', 'option' ) ?: 'Frequently Asked Questions' ); ?></h2>
         
         <?php while( have_rows('faqs', 'option') ): the_row(); ?>
             <div class="faq-item fade-in-up">

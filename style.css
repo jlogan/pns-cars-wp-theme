@@ -932,6 +932,64 @@ img {
     
     .main-nav {
         display: none;
+        position: fixed;
+        top: 70px;
+        left: 0;
+        width: 100%;
+        background: rgba(11, 17, 32, 0.98);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 2rem 0 0;
+        z-index: 999;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        max-height: calc(100vh - 70px);
+        overflow-y: auto;
+    }
+    
+    .main-nav.mobile-open {
+        display: block;
+    }
+    
+    .main-nav ul {
+        flex-direction: column;
+        gap: 0;
+        padding: 0 1rem;
+    }
+    
+    .main-nav li {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .main-nav a {
+        display: block;
+        padding: 1rem 0;
+        font-size: 1.1rem;
+    }
+    
+    .main-nav a::after {
+        display: none;
+    }
+    
+    .header-actions {
+        display: none;
+    }
+    
+    .header-actions.mobile-open {
+        display: block;
+        position: fixed;
+        left: 0;
+        width: 100%;
+        padding: 1.5rem 1rem;
+        background: rgba(11, 17, 32, 0.98);
+        backdrop-filter: blur(12px);
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        z-index: 999;
+        box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .header-actions.mobile-open .btn {
+        width: 100%;
+        margin: 0;
     }
     
     .mobile-toggle {

@@ -2,7 +2,7 @@
 if( have_rows('steps', 'option') ): ?>
 <section class="section-padding" id="how-it-works">
     <div class="container">
-        <h2 class="section-title text-center fade-in-up">How It Works</h2>
+        <h2 class="section-title text-center fade-in-up"><?php echo esc_html( get_field( 'how_it_works_heading', 'option' ) ?: 'How It Works' ); ?></h2>
         <div class="steps-grid">
             <?php 
             $i = 1;

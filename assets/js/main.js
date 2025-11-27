@@ -120,6 +120,65 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Mobile Menu Toggle
+    const mobileToggle = document.querySelector('.mobile-toggle');
+    const mainNav = document.querySelector('.main-nav');
+    const headerActions = document.querySelector('.header-actions');
+    
+    if (mobileToggle && mainNav) {
+        mobileToggle.addEventListener('click', function() {
+            const isOpen = mainNav.classList.contains('mobile-open');
+            
+            if (isOpen) {
+                mainNav.classList.remove('mobile-open');
+                if (headerActions) {
+                    headerActions.classList.remove('mobile-open');
+                }
+                mobileToggle.setAttribute('aria-expanded', 'false');
+                document.body.style.overflow = '';
+            } else {
+                mainNav.classList.add('mobile-open');
+                if (headerActions) {
+                    headerActions.classList.add('mobile-open');
+                    // Position header actions below the nav
+                    const navHeight = mainNav.scrollHeight;
+                    headerActions.style.top = (70 + navHeight) + 'px';
+                }
+                mobileToggle.setAttribute('aria-expanded', 'true');
+                document.body.style.overflow = 'hidden';
+            }
+        });
+        
+        // Close mobile menu when clicking on a link
+        const navLinks = mainNav.querySelectorAll('a');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                mainNav.classList.remove('mobile-open');
+                if (headerActions) {
+                    headerActions.classList.remove('mobile-open');
+                }
+                mobileToggle.setAttribute('aria-expanded', 'false');
+                document.body.style.overflow = '';
+            });
+        });
+        
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(e) {
+            if (mainNav.classList.contains('mobile-open')) {
+                if (!mainNav.contains(e.target) && 
+                    !headerActions.contains(e.target) && 
+                    !mobileToggle.contains(e.target)) {
+                    mainNav.classList.remove('mobile-open');
+                    if (headerActions) {
+                        headerActions.classList.remove('mobile-open');
+                    }
+                    mobileToggle.setAttribute('aria-expanded', 'false');
+                    document.body.style.overflow = '';
+                }
+            }
+        });
+    }
+
     // Vehicle Slider Drag (Desktop)
     const slider = document.querySelector('.vehicle-slider-container');
     let isDown = false;

@@ -2,7 +2,7 @@
     <div class="container">
         <div class="location-grid">
             <div class="location-info fade-in-up">
-                <h2>Find Us</h2>
+                <h2><?php echo esc_html( get_field( 'location_heading', 'option' ) ?: 'Find Us' ); ?></h2>
                 <p class="location-address">
                     <?php echo nl2br( esc_html( get_field( 'address_text', 'option' ) ) ); ?>
                 </p>
