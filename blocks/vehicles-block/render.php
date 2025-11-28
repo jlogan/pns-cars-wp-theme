@@ -3,8 +3,17 @@
  * Vehicles Block Render
  */
 
+// Ensure $attributes is an array (WordPress should pass this, but be safe)
+if ( ! is_array( $attributes ) ) {
+	$attributes = array();
+}
+
 // Get values from block attributes, fallback to ACF options
-$heading = !empty($attributes['heading']) ? $attributes['heading'] : (get_field('vehicles_heading', 'option') ?: 'Available Vehicles');
+// Check if attribute key exists and has a value (even if empty string)
+// Only fallback to ACF if the attribute key doesn't exist in the saved block
+$heading = ( isset( $attributes['heading'] ) && $attributes['heading'] !== null ) 
+	? $attributes['heading'] 
+	: ( get_field( 'vehicles_heading', 'option' ) ?: 'Available Vehicles' );
 ?>
 
 <section class="section-padding" id="vehicles">

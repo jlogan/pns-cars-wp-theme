@@ -22,9 +22,96 @@
 			"type": "string",
 			"default": "View Available Vehicles"
 		},
+		"ctaPrimaryLink": {
+			"type": "string",
+			"default": "#vehicles"
+		},
 		"ctaSecondary": {
 			"type": "string",
 			"default": "Start Your Booking"
+		},
+		"ctaSecondaryLink": {
+			"type": "string",
+			"default": "#booking"
+		},
+		"partnersText": {
+			"type": "string",
+			"default": "Perfect for:"
+		},
+		"partners": {
+			"type": "array",
+			"default": [
+				{
+					"image": "",
+					"imageId": null,
+					"alt": "Uber",
+					"link": ""
+				},
+				{
+					"image": "",
+					"imageId": null,
+					"alt": "Lyft",
+					"link": ""
+				},
+				{
+					"image": "",
+					"imageId": null,
+					"alt": "DoorDash",
+					"link": ""
+				}
+			]
+		},
+		"lifestyleImage": {
+			"type": "string",
+			"default": "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=1000&auto=format&fit=crop"
+		},
+		"lifestyleImageId": {
+			"type": "number",
+			"default": null
+		},
+		"earningsHeader": {
+			"type": "string",
+			"default": "Weekly Earnings"
+		},
+		"earningsAmount": {
+			"type": "string",
+			"default": "1426.29"
+		},
+		"earningsSubtext": {
+			"type": "string",
+			"default": "Oct 4 - Oct 10 • 33 Trips"
+		},
+		"earningsOnline": {
+			"type": "string",
+			"default": "20h 16m"
+		},
+		"earningsTips": {
+			"type": "string",
+			"default": "+$187.24"
+		},
+		"notification1Icon": {
+			"type": "string",
+			"default": "💰"
+		},
+		"notification1Title": {
+			"type": "string",
+			"default": "Payout Processed"
+		},
+		"notification1Sub": {
+			"type": "string",
+			"default": "You received $999.41"
+		},
+		"notification2Icon": {
+			"type": "string",
+			"default": "🚗"
+		},
+		"notification2Title": {
+			"type": "string",
+			"default": "New Tip!"
+		},
+		"notification2Sub": {
+			"type": "string",
+			"default": "+$15.00 from Sarah"
 		}
 	},
 	"render": "file:./render.php"

@@ -1,10 +1,10 @@
 <?php
 /**
- * Template Name: Blocks Template
+ * The template for displaying all pages
  * 
- * Template that supports Gutenberg blocks
+ * This template renders pages using Gutenberg blocks
  */
-get_header(); 
+get_header();
 ?>
 
 <main id="main" class="site-main">
@@ -13,6 +13,12 @@ get_header();
 		the_post();
 		?>
 		<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
+			<?php if ( ! is_front_page() ) : ?>
+				<header class="entry-header">
+					<?php the_title( '<h1 class="entry-title">', '</h1>' ); ?>
+				</header>
+			<?php endif; ?>
+
 			<div class="entry-content">
 				<?php
 				the_content();

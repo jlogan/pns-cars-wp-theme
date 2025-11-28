@@ -14,9 +14,25 @@
 			"type": "string",
 			"default": "Simple, Transparent Pricing"
 		},
-		"content": {
+		"introText": {
 			"type": "string",
-			"default": "<p>No hidden fees. One weekly price covers the car, insurance, and maintenance.</p><ul><li>$250 Refundable Deposit</li><li>Weekly automatic payments</li><li>Minimum 2-week rental</li></ul>"
+			"default": "No hidden fees. One weekly price covers the car, insurance, and maintenance."
+		},
+		"listItems": {
+			"type": "array",
+			"default": [
+				"$250 Refundable Deposit",
+				"Weekly automatic payments",
+				"Minimum 2-week rental"
+			]
+		},
+		"buttonText": {
+			"type": "string",
+			"default": "Choose Your Car"
+		},
+		"buttonLink": {
+			"type": "string",
+			"default": "#vehicles"
 		}
 	},
 	"render": "file:./render.php"

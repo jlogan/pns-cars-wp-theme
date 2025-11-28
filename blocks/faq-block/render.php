@@ -3,9 +3,21 @@
  * FAQ Block Render
  */
 
+// Ensure $attributes is an array (WordPress should pass this, but be safe)
+if ( ! is_array( $attributes ) ) {
+	$attributes = array();
+}
+
 // Get values from block attributes, fallback to ACF options
-$heading = !empty($attributes['heading']) ? $attributes['heading'] : (get_field('faq_heading', 'option') ?: 'Frequently Asked Questions');
-$faqs = !empty($attributes['faqs']) ? $attributes['faqs'] : [];
+// Check if attribute key exists and has a value (even if empty string)
+// Only fallback to ACF if the attribute key doesn't exist in the saved block
+$heading = ( isset( $attributes['heading'] ) && $attributes['heading'] !== null ) 
+	? $attributes['heading'] 
+	: ( get_field( 'faq_heading', 'option' ) ?: 'Frequently Asked Questions' );
+	
+$faqs = ( isset( $attributes['faqs'] ) && is_array( $attributes['faqs'] ) ) 
+	? $attributes['faqs'] 
+	: [];
 
 // If FAQs are empty, get from ACF
 if (empty($faqs) && function_exists('have_rows')) {

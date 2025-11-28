@@ -57,6 +57,144 @@ function pns_cars_scripts() {
 add_action( 'wp_enqueue_scripts', 'pns_cars_scripts' );
 
 /**
+ * Enqueue Block Editor Assets
+ */
+function pns_cars_block_editor_assets() {
+	$version = wp_get_theme()->get( 'Version' );
+	
+	// Block editor script
+	wp_enqueue_script(
+		'pns-cars-block-editor',
+		get_template_directory_uri() . '/assets/js/block-editor.js',
+		array( 'wp-blocks', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-hooks' ),
+		$version,
+		true
+	);
+	
+	// Localize ACF data for block editor
+	$acf_data = array();
+	
+	// Hero data
+	$acf_data['hero'] = array(
+		'headline' => get_field( 'hero_headline', 'option' ) ?: 'Drive today. Earn this week.',
+		'subheadline' => get_field( 'hero_subheadline', 'option' ) ?: 'Get behind the wheel of a reliable vehicle and start earning with Uber, Lyft, and DoorDash immediately. No credit checks, easy approval.',
+		'ctaPrimary' => get_field( 'hero_cta_primary', 'option' ) ?: 'View Available Vehicles',
+		'ctaPrimaryLink' => get_field( 'hero_cta_primary_link', 'option' ) ?: '#vehicles',
+		'ctaSecondary' => get_field( 'hero_cta_secondary', 'option' ) ?: 'Start Your Booking',
+		'ctaSecondaryLink' => get_field( 'hero_cta_secondary_link', 'option' ) ?: '#booking',
+		'partnersText' => get_field( 'hero_partners_text', 'option' ) ?: 'Perfect for:',
+		'lifestyleImage' => get_field( 'hero_lifestyle_image', 'option' ) ?: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=1000&auto=format&fit=crop',
+		'lifestyleImageId' => null, // Will be set if image is uploaded via media library
+		'earningsHeader' => get_field( 'hero_earnings_header', 'option' ) ?: 'Weekly Earnings',
+		'earningsAmount' => get_field( 'hero_earnings_amount', 'option' ) ?: '1426.29',
+		'earningsSubtext' => get_field( 'hero_earnings_subtext', 'option' ) ?: 'Oct 4 - Oct 10 • 33 Trips',
+		'earningsOnline' => get_field( 'hero_earnings_online', 'option' ) ?: '20h 16m',
+		'earningsTips' => get_field( 'hero_earnings_tips', 'option' ) ?: '+$187.24',
+		'notification1Icon' => get_field( 'hero_notification1_icon', 'option' ) ?: '💰',
+		'notification1Title' => get_field( 'hero_notification1_title', 'option' ) ?: 'Payout Processed',
+		'notification1Sub' => get_field( 'hero_notification1_sub', 'option' ) ?: 'You received $999.41',
+		'notification2Icon' => get_field( 'hero_notification2_icon', 'option' ) ?: '🚗',
+		'notification2Title' => get_field( 'hero_notification2_title', 'option' ) ?: 'New Tip!',
+		'notification2Sub' => get_field( 'hero_notification2_sub', 'option' ) ?: '+$15.00 from Sarah',
+	);
+	
+	// How It Works data
+	$steps_data = array();
+	if ( function_exists( 'have_rows' ) && have_rows( 'steps', 'option' ) ) {
+		while ( have_rows( 'steps', 'option' ) ) {
+			the_row();
+			$steps_data[] = array(
+				'title' => get_sub_field( 'title' ) ?: '',
+				'description' => get_sub_field( 'description' ) ?: '',
+				'icon' => get_sub_field( 'icon' ) ?: '',
+			);
+		}
+	}
+	$acf_data['howItWorks'] = array(
+		'heading' => get_field( 'how_it_works_heading', 'option' ) ?: 'How It Works',
+		'steps' => $steps_data,
+	);
+	
+	// Services data
+	$services_data = array();
+	if ( function_exists( 'have_rows' ) && have_rows( 'services_list', 'option' ) ) {
+		while ( have_rows( 'services_list', 'option' ) ) {
+			the_row();
+			$services_data[] = array(
+				'title' => get_sub_field( 'title' ) ?: '',
+				'description' => get_sub_field( 'description' ) ?: '',
+			);
+		}
+	}
+	$acf_data['services'] = array(
+		'heading' => get_field( 'services_heading', 'option' ) ?: 'Benefits for Drivers',
+		'services' => $services_data,
+	);
+	
+	// Vehicles data
+	$acf_data['vehicles'] = array(
+		'heading' => get_field( 'vehicles_heading', 'option' ) ?: 'Available Vehicles',
+		'count' => get_field( 'vehicles_count', 'option' ) !== false ? get_field( 'vehicles_count', 'option' ) : -1,
+		'perRow' => get_field( 'vehicles_per_row', 'option' ) ?: 3,
+	);
+	
+	// Pricing data
+	$pricing_list_items = array();
+	if ( function_exists( 'have_rows' ) && have_rows( 'pricing_list_items', 'option' ) ) {
+		while ( have_rows( 'pricing_list_items', 'option' ) ) {
+			the_row();
+			$item = get_sub_field( 'item' );
+			if ( $item ) {
+				$pricing_list_items[] = $item;
+			}
+		}
+	}
+	if ( empty( $pricing_list_items ) ) {
+		$pricing_list_items = array(
+			'$250 Refundable Deposit',
+			'Weekly automatic payments',
+			'Minimum 2-week rental'
+		);
+	}
+	$acf_data['pricing'] = array(
+		'headline' => get_field( 'pricing_headline', 'option' ) ?: 'Simple, Transparent Pricing',
+		'introText' => get_field( 'pricing_intro_text', 'option' ) ?: 'No hidden fees. One weekly price covers the car, insurance, and maintenance.',
+		'listItems' => $pricing_list_items,
+		'buttonText' => get_field( 'pricing_button_text', 'option' ) ?: 'Choose Your Car',
+		'buttonLink' => get_field( 'pricing_button_link', 'option' ) ?: '#vehicles',
+	);
+	
+	// FAQ data
+	$faqs_data = array();
+	if ( function_exists( 'have_rows' ) && have_rows( 'faqs', 'option' ) ) {
+		while ( have_rows( 'faqs', 'option' ) ) {
+			the_row();
+			$faqs_data[] = array(
+				'question' => get_sub_field( 'question' ) ?: '',
+				'answer' => get_sub_field( 'answer' ) ?: '',
+			);
+		}
+	}
+	$acf_data['faq'] = array(
+		'heading' => get_field( 'faq_heading', 'option' ) ?: 'Frequently Asked Questions',
+		'faqs' => $faqs_data,
+	);
+	
+	// Location data
+	$acf_data['location'] = array(
+		'heading' => get_field( 'location_heading', 'option' ) ?: 'Find Us',
+		'addressText' => get_field( 'address_text', 'option' ) ?: "PNS Global Resources L.L.C<br>\n5872 New Peachtree Rd Ste 103<br>\nDoraville, GA 30340<br>\n<br>\nServing the Atlanta Metro Area",
+		'servingText' => get_field( 'location_serving_text', 'option' ) ?: 'Serving the Atlanta Metro Area with reliable vehicles for gig drivers. Stop by our office to see the fleet in person.',
+		'mapLink' => get_field( 'map_link', 'option' ) ?: 'https://goo.gl/maps/place/5872+New+Peachtree+Rd+Ste+103,+Doraville,+GA+30340',
+		'buttonText' => get_field( 'location_button_text', 'option' ) ?: 'Get Directions',
+		'googleMapsEmbedUrl' => get_field( 'google_maps_embed_url', 'option' ) ?: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d17969.587510091234!2d-84.29384894259061!3d33.90250098033048!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x88f509c59cbfffff%3A0xfb53040bca7eb8ed!2s5872%20New%20Peachtree%20Rd%20Ste%20103%2C%20Doraville%2C%20GA%2030340!5e0!3m2!1sen!2sus!4v1764203567826!5m2!1sen!2sus',
+	);
+	
+	wp_localize_script( 'pns-cars-block-editor', 'pnsCarsACFData', $acf_data );
+}
+add_action( 'enqueue_block_editor_assets', 'pns_cars_block_editor_assets' );
+
+/**
  * 4. ACF Options Page & Fields
  * Note: Options page removed - blocks now manage their own data
  */
@@ -441,7 +579,13 @@ function pns_cars_seed_content() {
 
 	// Pricing
 	update_field( 'pricing_headline', 'Simple, Transparent Pricing', $option_id );
-	update_field( 'pricing_content', '<p>No hidden fees. One weekly price covers the car, insurance, and maintenance.</p><ul><li>$250 Refundable Deposit</li><li>Weekly automatic payments</li><li>Minimum 2-week rental</li></ul>', $option_id );
+	update_field( 'pricing_intro_text', 'No hidden fees. One weekly price covers the car, insurance, and maintenance.', $option_id );
+	$pricing_items = array(
+		array( 'item' => '$250 Refundable Deposit' ),
+		array( 'item' => 'Weekly automatic payments' ),
+		array( 'item' => 'Minimum 2-week rental' ),
+	);
+	update_field( 'pricing_list_items', $pricing_items, $option_id );
 
 	// Mark as seeded
 	update_option( 'pns_cars_seeded', true );
@@ -465,20 +609,7 @@ function pns_cars_create_homepage_with_blocks() {
 		}
 	}
 	
-	// Check if a page with blocks template exists
-	if ( ! $homepage ) {
-		$existing_pages = get_posts( array(
-			'post_type' => 'page',
-			'post_status' => 'any',
-			'meta_key' => '_wp_page_template',
-			'meta_value' => 'page-blocks.php',
-			'posts_per_page' => 1,
-		) );
-		if ( ! empty( $existing_pages ) ) {
-			// Page with blocks template already exists
-			return;
-		}
-	} else {
+	if ( $homepage ) {
 		// Homepage exists, don't create
 		return;
 	}
@@ -493,7 +624,22 @@ function pns_cars_create_homepage_with_blocks() {
 			'headline' => get_field( 'hero_headline', 'option' ) ?: 'Drive today. Earn this week.',
 			'subheadline' => get_field( 'hero_subheadline', 'option' ) ?: 'Get behind the wheel of a reliable vehicle and start earning with Uber, Lyft, and DoorDash immediately. No credit checks, easy approval.',
 			'ctaPrimary' => get_field( 'hero_cta_primary', 'option' ) ?: 'View Available Vehicles',
+			'ctaPrimaryLink' => get_field( 'hero_cta_primary_link', 'option' ) ?: '#vehicles',
 			'ctaSecondary' => get_field( 'hero_cta_secondary', 'option' ) ?: 'Start Your Booking',
+			'ctaSecondaryLink' => get_field( 'hero_cta_secondary_link', 'option' ) ?: '#booking',
+			'partnersText' => get_field( 'hero_partners_text', 'option' ) ?: 'Perfect for:',
+			'lifestyleImage' => get_field( 'hero_lifestyle_image', 'option' ) ?: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=1000&auto=format&fit=crop',
+			'earningsHeader' => get_field( 'hero_earnings_header', 'option' ) ?: 'Weekly Earnings',
+			'earningsAmount' => get_field( 'hero_earnings_amount', 'option' ) ?: '1426.29',
+			'earningsSubtext' => get_field( 'hero_earnings_subtext', 'option' ) ?: 'Oct 4 - Oct 10 • 33 Trips',
+			'earningsOnline' => get_field( 'hero_earnings_online', 'option' ) ?: '20h 16m',
+			'earningsTips' => get_field( 'hero_earnings_tips', 'option' ) ?: '+$187.24',
+			'notification1Icon' => get_field( 'hero_notification1_icon', 'option' ) ?: '💰',
+			'notification1Title' => get_field( 'hero_notification1_title', 'option' ) ?: 'Payout Processed',
+			'notification1Sub' => get_field( 'hero_notification1_sub', 'option' ) ?: 'You received $999.41',
+			'notification2Icon' => get_field( 'hero_notification2_icon', 'option' ) ?: '🚗',
+			'notification2Title' => get_field( 'hero_notification2_title', 'option' ) ?: 'New Tip!',
+			'notification2Sub' => get_field( 'hero_notification2_sub', 'option' ) ?: '+$15.00 from Sarah',
 		),
 		'innerBlocks' => array(),
 		'innerContent' => array(),
@@ -555,11 +701,31 @@ function pns_cars_create_homepage_with_blocks() {
 	);
 
 	// Pricing Block
+	$pricing_list_items = array();
+	if ( function_exists( 'have_rows' ) && have_rows( 'pricing_list_items', 'option' ) ) {
+		while ( have_rows( 'pricing_list_items', 'option' ) ) {
+			the_row();
+			$item = get_sub_field( 'item' );
+			if ( $item ) {
+				$pricing_list_items[] = $item;
+			}
+		}
+	}
+	if ( empty( $pricing_list_items ) ) {
+		$pricing_list_items = array(
+			'$250 Refundable Deposit',
+			'Weekly automatic payments',
+			'Minimum 2-week rental'
+		);
+	}
 	$blocks[] = array(
 		'blockName' => 'pns-cars/pricing',
 		'attrs' => array(
 			'headline' => get_field( 'pricing_headline', 'option' ) ?: 'Simple, Transparent Pricing',
-			'content' => get_field( 'pricing_content', 'option' ) ?: '<p>No hidden fees. One weekly price covers the car, insurance, and maintenance.</p><ul><li>$250 Refundable Deposit</li><li>Weekly automatic payments</li><li>Minimum 2-week rental</li></ul>',
+			'introText' => get_field( 'pricing_intro_text', 'option' ) ?: 'No hidden fees. One weekly price covers the car, insurance, and maintenance.',
+			'listItems' => $pricing_list_items,
+			'buttonText' => get_field( 'pricing_button_text', 'option' ) ?: 'Choose Your Car',
+			'buttonLink' => get_field( 'pricing_button_link', 'option' ) ?: '#vehicles',
 		),
 		'innerBlocks' => array(),
 		'innerContent' => array(),
@@ -591,8 +757,10 @@ function pns_cars_create_homepage_with_blocks() {
 		'blockName' => 'pns-cars/location',
 		'attrs' => array(
 			'heading' => get_field( 'location_heading', 'option' ) ?: 'Find Us',
-			'addressText' => get_field( 'address_text', 'option' ) ?: "PNS Global Resources L.L.C\n5872 New Peachtree Rd Ste 103\nDoraville, GA 30340\n\nServing the Atlanta Metro Area",
+			'addressText' => get_field( 'address_text', 'option' ) ?: "PNS Global Resources L.L.C<br>\n5872 New Peachtree Rd Ste 103<br>\nDoraville, GA 30340<br>\n<br>\nServing the Atlanta Metro Area",
+			'servingText' => get_field( 'location_serving_text', 'option' ) ?: 'Serving the Atlanta Metro Area with reliable vehicles for gig drivers. Stop by our office to see the fleet in person.',
 			'mapLink' => get_field( 'map_link', 'option' ) ?: 'https://goo.gl/maps/place/5872+New+Peachtree+Rd+Ste+103,+Doraville,+GA+30340',
+			'buttonText' => get_field( 'location_button_text', 'option' ) ?: 'Get Directions',
 			'googleMapsEmbedUrl' => get_field( 'google_maps_embed_url', 'option' ) ?: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d17969.587510091234!2d-84.29384894259061!3d33.90250098033048!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x88f509c59cbfffff%3A0xfb53040bca7eb8ed!2s5872%20New%20Peachtree%20Rd%20Ste%20103%2C%20Doraville%2C%20GA%2030340!5e0!3m2!1sen!2sus!4v1764203567826!5m2!1sen!2sus',
 		),
 		'innerBlocks' => array(),
@@ -618,10 +786,7 @@ function pns_cars_create_homepage_with_blocks() {
 	$homepage_id = wp_insert_post( $post_data );
 	
 	if ( $homepage_id && ! is_wp_error( $homepage_id ) ) {
-		// Set the blocks template
-		update_post_meta( $homepage_id, '_wp_page_template', 'page-blocks.php' );
-		
-		// Set as homepage
+		// Set as homepage (uses default page.php template which renders blocks)
 		update_option( 'show_on_front', 'page' );
 		update_option( 'page_on_front', $homepage_id );
 	}
