@@ -92,7 +92,7 @@ function pns_cars_block_editor_assets() {
 		$theme_img_url = get_template_directory_uri() . '/assets/img/';
 		$partners_data = array(
 			array(
-				'image' => $theme_img_url . 'uber-logo.svg',
+				'image' => $theme_img_url . 'uber-logo.png',
 				'imageId' => null,
 				'alt' => 'Uber',
 				'link' => 'https://www.uber.com',
@@ -593,7 +593,7 @@ function pns_cars_seed_content() {
 		$theme_img_url = get_template_directory_uri() . '/assets/img/';
 		$partner_logos = array(
 			array(
-				'image' => $theme_img_url . 'uber-logo.svg',
+				'image' => $theme_img_url . 'uber-logo.png',
 				'alt' => 'Uber',
 				'link' => 'https://www.uber.com',
 			),
@@ -645,7 +645,7 @@ function pns_cars_seed_content() {
 	$theme_img_url = get_template_directory_uri() . '/assets/img/';
 	$partner_logos = array(
 		array(
-			'image' => $theme_img_url . 'uber-logo.svg',
+			'image' => $theme_img_url . 'uber-logo.png',
 			'alt' => 'Uber',
 			'link' => 'https://www.uber.com',
 		),
@@ -802,7 +802,7 @@ function pns_cars_create_homepage_with_blocks() {
 			// Replace external URLs with local ones
 			if ( $image_url ) {
 					if ( strpos( $image_url, 'cloudfront' ) !== false ) {
-						$image_url = $theme_img_url . 'uber-logo.svg';
+						$image_url = $theme_img_url . 'uber-logo.png';
 					} elseif ( strpos( $image_url, 'ctfassets' ) !== false ) {
 						$image_url = $theme_img_url . 'lyft-logo.svg';
 					} elseif ( strpos( $image_url, 'cdn.doordash' ) !== false ) {
@@ -823,7 +823,7 @@ function pns_cars_create_homepage_with_blocks() {
 	if ( empty( $partners_data ) || count( $partners_data ) < 5 ) {
 		$partners_data = array(
 			array(
-				'image' => $theme_img_url . 'uber-logo.svg',
+				'image' => $theme_img_url . 'uber-logo.png',
 				'imageId' => null,
 				'alt' => 'Uber',
 				'link' => 'https://www.uber.com',

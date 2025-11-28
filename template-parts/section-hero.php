@@ -26,7 +26,7 @@ $cta2 = get_field('hero_cta_secondary', 'option');
                 <div class="hero-partners">
                     <span>Perfect for:</span>
                     <div class="partner-logos">
-                        <img src="<?php echo get_template_directory_uri(); ?>/assets/img/uber-logo.svg" alt="Uber" class="partner-logo">
+                        <img src="<?php echo get_template_directory_uri(); ?>/assets/img/uber-logo.png" alt="Uber" class="partner-logo">
                         <img src="<?php echo get_template_directory_uri(); ?>/assets/img/lyft-logo.svg" alt="Lyft" class="partner-logo">
                         <img src="<?php echo get_template_directory_uri(); ?>/assets/img/doordash-logo.svg" alt="DoorDash" class="partner-logo">
                     </div>
