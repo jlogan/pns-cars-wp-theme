@@ -30,6 +30,15 @@
         <div class="container footer-disclaimer">
             <p>&copy; <?php echo date('Y'); ?> PNS Global Resources. All rights reserved.</p>
             <p>PNS Cars provides vehicles for drivers who use platforms such as Uber, Lyft, DoorDash, and others. We are not affiliated with or endorsed by these companies. All trademarks are the property of their respective owners.</p>
+            
+            <div class="site-credit">
+                <a href="https://brogrammersagency.com" target="_blank" rel="noopener noreferrer" class="brogrammers-credit">
+                    <span class="credit-logo">
+                        <img src="<?php echo get_template_directory_uri(); ?>/assets/img/brogrammers-logo.png" alt="Brogrammers Agency">
+                    </span>
+                    <span class="credit-text">Built by Brogrammers Agency</span>
+                </a>
+            </div>
         </div>
     </footer>
 
