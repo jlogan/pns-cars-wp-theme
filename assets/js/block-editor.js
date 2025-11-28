@@ -148,21 +148,52 @@
 			});
 
 			const { attributes, setAttributes } = props;
+			
+			// Normalize listItems if they're stored as strings
+			if (blockConfig.name === 'pns-cars/pricing' && attributes.listItems && Array.isArray(attributes.listItems) && attributes.listItems.length > 0) {
+				if (typeof attributes.listItems[0] === 'string' && !attributes._listItemsNormalized) {
+					const normalized = attributes.listItems.map(function(str) {
+						return { item: str };
+					});
+					setAttributes({
+						listItems: normalized,
+						_listItemsNormalized: true
+					});
+				}
+			}
 
-			// Pre-fill attributes from ACF data if empty (only once)
+			// Pre-fill attributes from ACF data if empty (only once, on first load)
+			// Once _prefilled is true, never auto-add values - respect user's choices
 			if (window.pnsCarsACFData && !attributes._prefilled) {
 				let newAttrs = {};
 				let shouldUpdate = false;
 
 				if (blockConfig.name === 'pns-cars/hero' && window.pnsCarsACFData.hero) {
-					// Pre-fill if any field is missing
+					// Pre-fill if any field is missing (only on first load)
 					const heroData = window.pnsCarsACFData.hero;
+					const hasPartners = attributes.partners && Array.isArray(attributes.partners) && attributes.partners.length > 0;
+					
+					// Only pre-fill partners if they don't exist at all (first time only)
+					// If user removes them later, respect that choice (won't run because _prefilled will be true)
+					let partners = attributes.partners || [];
+					if (!hasPartners && heroData.partners && Array.isArray(heroData.partners) && heroData.partners.length > 0) {
+						// Only use ACF partners if they have images
+						const acfPartnersHaveImages = heroData.partners.some(function(p) {
+							return p && (p.image || p.imageId);
+						});
+						if (acfPartnersHaveImages) {
+							partners = heroData.partners;
+						}
+					}
+					
 					if (!attributes.headline || !attributes.subheadline || !attributes.ctaPrimary || !attributes.ctaSecondary ||
 						!attributes.ctaPrimaryLink || !attributes.ctaSecondaryLink || !attributes.partnersText ||
 						!attributes.lifestyleImage || !attributes.earningsHeader || !attributes.earningsAmount ||
 						!attributes.earningsSubtext || !attributes.earningsOnline || !attributes.earningsTips ||
 						!attributes.notification1Icon || !attributes.notification1Title || !attributes.notification1Sub ||
-						!attributes.notification2Icon || !attributes.notification2Title || !attributes.notification2Sub) {
+						!attributes.notification2Icon || !attributes.notification2Title || !attributes.notification2Sub ||
+						(!hasPartners && partners.length > 0)) {
+						
 						newAttrs = {
 							headline: attributes.headline || heroData.headline || '',
 							subheadline: attributes.subheadline || heroData.subheadline || '',
@@ -171,6 +202,7 @@
 							ctaSecondary: attributes.ctaSecondary || heroData.ctaSecondary || '',
 							ctaSecondaryLink: attributes.ctaSecondaryLink || heroData.ctaSecondaryLink || '#booking',
 							partnersText: attributes.partnersText || heroData.partnersText || 'Perfect for:',
+							partners: partners,
 							lifestyleImage: attributes.lifestyleImage || heroData.lifestyleImage || 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=1000&auto=format&fit=crop',
 							lifestyleImageId: attributes.lifestyleImageId || heroData.lifestyleImageId || null,
 							earningsHeader: attributes.earningsHeader || heroData.earningsHeader || 'Weekly Earnings',
@@ -184,6 +216,12 @@
 							notification2Icon: attributes.notification2Icon || heroData.notification2Icon || '🚗',
 							notification2Title: attributes.notification2Title || heroData.notification2Title || 'New Tip!',
 							notification2Sub: attributes.notification2Sub || heroData.notification2Sub || '+$15.00 from Sarah',
+							_prefilled: true
+						};
+						shouldUpdate = true;
+					} else {
+						// Mark as prefilled even if no update needed
+						newAttrs = {
 							_prefilled: true
 						};
 						shouldUpdate = true;
@@ -223,16 +261,28 @@
 					}
 				} else if (blockConfig.name === 'pns-cars/pricing' && window.pnsCarsACFData.pricing) {
 					// Pre-fill if any field is missing
-					const hasListItems = attributes.listItems && Array.isArray(attributes.listItems) && attributes.listItems.length > 0;
+					let listItems = attributes.listItems || [];
+					
+					// Normalize listItems: convert strings to objects with 'item' key
+					if (listItems.length > 0 && typeof listItems[0] === 'string') {
+						listItems = listItems.map(function(item) {
+							return { item: item };
+						});
+						shouldUpdate = true;
+					}
+					
+					const hasListItems = listItems.length > 0 && listItems.every(function(item) {
+						return item && typeof item === 'object' && item.item;
+					});
+					
 					if (!attributes.headline || !attributes.introText || !hasListItems || !attributes.buttonText || !attributes.buttonLink) {
-						// Convert list items array to object array format if needed
-						let listItems = attributes.listItems || [];
+						// Get from ACF if not normalized yet
 						if (!hasListItems && window.pnsCarsACFData.pricing.listItems && Array.isArray(window.pnsCarsACFData.pricing.listItems)) {
 							listItems = window.pnsCarsACFData.pricing.listItems.map(function(item) {
 								return typeof item === 'string' ? { item: item } : item;
 							});
 						}
-						if (listItems.length === 0) {
+						if (listItems.length === 0 || !hasListItems) {
 							listItems = [
 								{ item: '$250 Refundable Deposit' },
 								{ item: 'Weekly automatic payments' },
@@ -248,6 +298,12 @@
 							_prefilled: true
 						};
 						shouldUpdate = true;
+					} else if (shouldUpdate) {
+						// Just normalize the existing listItems
+						newAttrs = {
+							listItems: listItems,
+							_prefilled: true
+						};
 					}
 				} else if (blockConfig.name === 'pns-cars/faq' && window.pnsCarsACFData.faq) {
 					// Pre-fill if heading is missing or faqs array is empty
@@ -349,8 +405,20 @@
 
 				// Helper function to render array field
 				function renderArrayField(field) {
-					const arrayValue = attributes[field.key] || [];
+					let arrayValue = attributes[field.key] || [];
 					const itemFields = field.itemFields || [];
+					
+					// Normalize array items: convert strings to objects for listItems
+					// Only normalize if not already normalized and not during initial pre-fill
+					if (field.key === 'listItems' && arrayValue.length > 0 && typeof arrayValue[0] === 'string' && !attributes._prefilled) {
+						arrayValue = arrayValue.map(function(str) {
+							return { item: str };
+						});
+						// Update attributes with normalized data (use setTimeout to avoid render loop)
+						setTimeout(function() {
+							setAttributes({ [field.key]: arrayValue });
+						}, 0);
+					}
 					
 					return wp.element.createElement('div', { key: field.key, style: { marginBottom: '20px' } },
 						wp.element.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' } },
@@ -392,7 +460,82 @@
 									}, 'Remove')
 								),
 								itemFields.map(function(itemField) {
-									if (itemField.type === 'textarea') {
+									if (itemField.type === 'image') {
+										const imageValue = item[itemField.key] || '';
+										const imageId = item[itemField.key + 'Id'] || null;
+										
+										return wp.element.createElement('div', { key: itemField.key, style: { marginBottom: '15px' } },
+											wp.element.createElement('label', { style: { display: 'block', marginBottom: '8px', fontWeight: '600' } }, itemField.label),
+											wp.element.createElement(MediaUploadCheck, {},
+												wp.element.createElement(MediaUpload, {
+													onSelect: function(media) {
+														const newArray = [...arrayValue];
+														newArray[index] = {
+															...newArray[index],
+															[itemField.key]: media.url || media.sizes?.full?.url || '',
+															[itemField.key + 'Id']: media.id || null
+														};
+														setAttributes({ [field.key]: newArray });
+													},
+													allowedTypes: ['image'],
+													value: imageId,
+													render: function(obj) {
+														return wp.element.createElement(Button, {
+															onClick: obj.open,
+															isSecondary: true,
+															isSmall: true,
+															style: { marginBottom: '10px', width: '100%' }
+														}, imageId ? 'Replace Image' : 'Select Image from Media Library');
+													}
+												})
+											),
+											imageValue && wp.element.createElement('div', { style: { marginBottom: '10px' } },
+												wp.element.createElement('img', {
+													src: imageValue,
+													alt: '',
+													style: {
+														width: '100%',
+														maxHeight: '150px',
+														objectFit: 'contain',
+														borderRadius: '4px',
+														border: '1px solid #ddd',
+														background: '#f9f9f9',
+														padding: '8px'
+													}
+												})
+											),
+											wp.element.createElement(TextControl, {
+												label: 'Or enter image URL',
+												value: imageValue,
+												onChange: function(value) {
+													const newArray = [...arrayValue];
+													newArray[index] = {
+														...newArray[index],
+														[itemField.key]: value,
+														[itemField.key + 'Id']: null
+													};
+													setAttributes({ [field.key]: newArray });
+												},
+												placeholder: 'https://example.com/image.jpg',
+												__next40pxDefaultSize: true,
+												__nextHasNoMarginBottom: true
+											}),
+											(imageId || imageValue) && wp.element.createElement(Button, {
+												isDestructive: true,
+												isSmall: true,
+												onClick: function() {
+													const newArray = [...arrayValue];
+													newArray[index] = {
+														...newArray[index],
+														[itemField.key]: '',
+														[itemField.key + 'Id']: null
+													};
+													setAttributes({ [field.key]: newArray });
+												},
+												style: { marginTop: '10px' }
+											}, 'Remove Image')
+										);
+									} else if (itemField.type === 'textarea') {
 										return wp.element.createElement(TextareaControl, {
 											key: itemField.key,
 											label: itemField.label,
@@ -426,75 +569,165 @@
 					);
 				}
 
+				// Helper function to render field in editor
+				function renderEditorField(field) {
+					if (field.type === 'image') {
+						return renderImageField(field);
+					} else if (field.type === 'array') {
+						// For partner logos, add a preview section
+						if (field.key === 'partners') {
+							const arrayValue = attributes[field.key] || [];
+							return wp.element.createElement(Fragment, { key: field.key },
+								renderArrayField(field),
+								arrayValue.length > 0 && wp.element.createElement('div', {
+									style: {
+										marginTop: '15px',
+										padding: '15px',
+										background: '#f0f0f0',
+										borderRadius: '4px',
+										border: '1px solid #ddd'
+									}
+								},
+									wp.element.createElement('strong', { style: { display: 'block', marginBottom: '10px' } }, 'Partner Logos Preview:'),
+									wp.element.createElement('div', {
+										style: {
+											display: 'flex',
+											gap: '15px',
+											flexWrap: 'wrap',
+											alignItems: 'center'
+										}
+									},
+										arrayValue.map(function(partner, idx) {
+											const logoUrl = partner.image || '';
+											if (!logoUrl) return null;
+											return wp.element.createElement('div', {
+												key: idx,
+												style: {
+													display: 'flex',
+													alignItems: 'center',
+													justifyContent: 'center',
+													padding: '10px',
+													background: '#fff',
+													borderRadius: '4px',
+													border: '1px solid #ddd',
+													minWidth: '100px',
+													maxWidth: '150px',
+													height: '60px'
+												}
+											},
+												wp.element.createElement('img', {
+													src: logoUrl,
+													alt: partner.alt || '',
+													style: {
+														maxWidth: '100%',
+														maxHeight: '100%',
+														objectFit: 'contain'
+													}
+												})
+											);
+										})
+									),
+									arrayValue.length === 0 || arrayValue.every(function(p) { return !p.image; }) && wp.element.createElement('p', {
+										style: { color: '#666', fontStyle: 'italic', margin: 0 }
+									}, 'No partner logos added yet. Add logos above to see preview.')
+								)
+							);
+						}
+						return renderArrayField(field);
+					} else if (field.type === 'textarea') {
+						return wp.element.createElement(TextareaControl, {
+							key: field.key,
+							label: field.label,
+							value: attributes[field.key] || '',
+							onChange: function(value) {
+								setAttributes({ [field.key]: value });
+							},
+							rows: field.key === 'googleMapsEmbedUrl' ? 3 : 4,
+							__nextHasNoMarginBottom: true
+						});
+					} else if (field.type === 'number') {
+						return wp.element.createElement(RangeControl, {
+							key: field.key,
+							label: field.label,
+							value: attributes[field.key] !== undefined ? attributes[field.key] : (field.default !== undefined ? field.default : 0),
+							onChange: function(value) {
+								setAttributes({ [field.key]: value });
+							},
+							min: field.min !== undefined ? field.min : 0,
+							max: field.max !== undefined ? field.max : 100,
+							allowReset: true,
+							__next40pxDefaultSize: true,
+							__nextHasNoMarginBottom: true
+						});
+					} else {
+						return wp.element.createElement(TextControl, {
+							key: field.key,
+							label: field.label,
+							value: attributes[field.key] || '',
+							onChange: function(value) {
+								setAttributes({ [field.key]: value });
+							},
+							__next40pxDefaultSize: true,
+							__nextHasNoMarginBottom: true
+						});
+					}
+				}
+
 				// Render form fields
 				return wp.element.createElement(
 					Fragment,
 					{},
 					wp.element.createElement(InspectorControls, {},
-						wp.element.createElement(PanelBody, { title: blockConfig.title, initialOpen: true },
+						wp.element.createElement(PanelBody, { title: blockConfig.title + ' Settings', initialOpen: false },
 							blockConfig.fields.map(function(field) {
-								if (field.type === 'image') {
-									return renderImageField(field);
-								} else if (field.type === 'array') {
-									return renderArrayField(field);
-								} else if (field.type === 'textarea') {
-									return wp.element.createElement(TextareaControl, {
-										key: field.key,
-										label: field.label,
-										value: attributes[field.key] || '',
-										onChange: function(value) {
-											setAttributes({ [field.key]: value });
-										},
-										rows: field.key === 'googleMapsEmbedUrl' ? 3 : 4,
-										__nextHasNoMarginBottom: true
-									});
-								} else if (field.type === 'number') {
-									return wp.element.createElement(RangeControl, {
-										key: field.key,
-										label: field.label,
-										value: attributes[field.key] !== undefined ? attributes[field.key] : (field.default !== undefined ? field.default : 0),
-										onChange: function(value) {
-											setAttributes({ [field.key]: value });
-										},
-										min: field.min !== undefined ? field.min : 0,
-										max: field.max !== undefined ? field.max : 100,
-										allowReset: true,
-										__next40pxDefaultSize: true,
-										__nextHasNoMarginBottom: true
-									});
-								} else {
-									return wp.element.createElement(TextControl, {
-										key: field.key,
-										label: field.label,
-										value: attributes[field.key] || '',
-										onChange: function(value) {
-											setAttributes({ [field.key]: value });
-										},
-										__next40pxDefaultSize: true,
-										__nextHasNoMarginBottom: true
-									});
-								}
+								return renderEditorField(field);
 							})
 						)
 					),
-				wp.element.createElement('div', blockProps,
-					wp.element.createElement('div', {
-						style: {
-							padding: '20px',
-							border: '1px dashed #ccc',
-							background: '#f9f9f9',
-							borderRadius: '4px'
-						}
-					},
-						wp.element.createElement('strong', { style: { display: 'block', marginBottom: '10px' } },
-							blockConfig.title
-						),
-						wp.element.createElement('p', { style: { margin: 0, color: '#666', fontSize: '13px' } },
-							'Configure this block using the settings panel on the right.'
+					wp.element.createElement('div', blockProps,
+						wp.element.createElement('div', {
+							style: {
+								padding: '24px',
+								border: '1px solid #ddd',
+								background: '#fff',
+								borderRadius: '8px',
+								boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+							}
+						},
+							wp.element.createElement('div', {
+								style: {
+									marginBottom: '20px',
+									paddingBottom: '12px',
+									borderBottom: '2px solid #0073aa'
+								}
+							},
+								wp.element.createElement('strong', {
+									style: {
+										fontSize: '16px',
+										color: '#23282d'
+									}
+								}, blockConfig.title),
+								wp.element.createElement('p', {
+									style: {
+										margin: '4px 0 0 0',
+										color: '#666',
+										fontSize: '13px'
+									}
+								}, blockConfig.description)
+							),
+							wp.element.createElement('div', {
+								style: {
+									display: 'grid',
+									gap: '16px'
+								}
+							},
+								blockConfig.fields.map(function(field) {
+									return renderEditorField(field);
+								})
+							)
 						)
 					)
-				)
-			);
+				);
 		};
 	}
 

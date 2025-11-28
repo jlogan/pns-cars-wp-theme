@@ -74,7 +74,43 @@ function pns_cars_block_editor_assets() {
 	// Localize ACF data for block editor
 	$acf_data = array();
 	
-	// Hero data
+	// Hero data - get partner logos from ACF
+	$partners_data = array();
+	if ( function_exists( 'have_rows' ) && have_rows( 'hero_partner_logos', 'option' ) ) {
+		while ( have_rows( 'hero_partner_logos', 'option' ) ) {
+			the_row();
+			$partners_data[] = array(
+				'image' => get_sub_field( 'image' ) ?: '',
+				'imageId' => null, // ACF stores URL, not ID
+				'alt' => get_sub_field( 'alt' ) ?: '',
+				'link' => get_sub_field( 'link' ) ?: '',
+			);
+		}
+	}
+	// Default partner logos if empty
+	if ( empty( $partners_data ) ) {
+		$theme_img_url = get_template_directory_uri() . '/assets/img/';
+		$partners_data = array(
+			array(
+				'image' => $theme_img_url . 'uber-logo.svg',
+				'imageId' => null,
+				'alt' => 'Uber',
+				'link' => 'https://www.uber.com',
+			),
+			array(
+				'image' => $theme_img_url . 'lyft-logo.svg',
+				'imageId' => null,
+				'alt' => 'Lyft',
+				'link' => 'https://www.lyft.com',
+			),
+			array(
+				'image' => $theme_img_url . 'doordash-logo.svg',
+				'imageId' => null,
+				'alt' => 'DoorDash',
+				'link' => 'https://www.doordash.com',
+			),
+		);
+	}
 	$acf_data['hero'] = array(
 		'headline' => get_field( 'hero_headline', 'option' ) ?: 'Drive today. Earn this week.',
 		'subheadline' => get_field( 'hero_subheadline', 'option' ) ?: 'Get behind the wheel of a reliable vehicle and start earning with Uber, Lyft, and DoorDash immediately. No credit checks, easy approval.',
@@ -83,6 +119,7 @@ function pns_cars_block_editor_assets() {
 		'ctaSecondary' => get_field( 'hero_cta_secondary', 'option' ) ?: 'Start Your Booking',
 		'ctaSecondaryLink' => get_field( 'hero_cta_secondary_link', 'option' ) ?: '#booking',
 		'partnersText' => get_field( 'hero_partners_text', 'option' ) ?: 'Perfect for:',
+		'partners' => $partners_data,
 		'lifestyleImage' => get_field( 'hero_lifestyle_image', 'option' ) ?: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=1000&auto=format&fit=crop',
 		'lifestyleImageId' => null, // Will be set if image is uploaded via media library
 		'earningsHeader' => get_field( 'hero_earnings_header', 'option' ) ?: 'Weekly Earnings',
@@ -242,6 +279,40 @@ function pns_cars_register_fields() {
 				'label' => 'Secondary CTA Text',
 				'name' => 'hero_cta_secondary',
 				'type' => 'text',
+			),
+			array(
+				'key' => 'field_hero_partners_text',
+				'label' => 'Partners Text',
+				'name' => 'hero_partners_text',
+				'type' => 'text',
+				'default_value' => 'Perfect for:',
+			),
+			array(
+				'key' => 'field_hero_partner_logos',
+				'label' => 'Partner Logos',
+				'name' => 'hero_partner_logos',
+				'type' => 'repeater',
+				'layout' => 'table',
+				'sub_fields' => array(
+					array(
+						'key' => 'field_partner_image',
+						'label' => 'Image URL',
+						'name' => 'image',
+						'type' => 'url',
+					),
+					array(
+						'key' => 'field_partner_alt',
+						'label' => 'Alt Text',
+						'name' => 'alt',
+						'type' => 'text',
+					),
+					array(
+						'key' => 'field_partner_link',
+						'label' => 'Link URL',
+						'name' => 'link',
+						'type' => 'url',
+					),
+				),
 			),
 			
 			// Tab: How It Works
@@ -479,8 +550,53 @@ function pns_cars_seed_content() {
 		return;
 	}
 
-	// Check if already seeded
-	if ( get_option( 'pns_cars_seeded' ) ) {
+	$is_already_seeded = get_option( 'pns_cars_seeded' );
+	
+	// Always check and update partner logos if empty OR if they contain external URLs (even if already seeded)
+	$current_partners = get_field( 'hero_partner_logos', 'option' );
+	$needs_update = false;
+	
+	if ( empty( $current_partners ) || ! is_array( $current_partners ) || count( $current_partners ) === 0 ) {
+		$needs_update = true;
+	} else {
+		// Check if any partner logo uses external URLs
+		foreach ( $current_partners as $partner ) {
+			if ( isset( $partner['image'] ) && $partner['image'] ) {
+				// Check if it's an external URL (not from our theme directory)
+				if ( strpos( $partner['image'], 'cloudfront' ) !== false || 
+					 strpos( $partner['image'], 'ctfassets' ) !== false || 
+					 strpos( $partner['image'], 'cdn.doordash' ) !== false ||
+					 ( strpos( $partner['image'], get_template_directory_uri() ) === false && strpos( $partner['image'], 'http' ) === 0 ) ) {
+					$needs_update = true;
+					break;
+				}
+			}
+		}
+	}
+	
+	if ( $needs_update ) {
+		$theme_img_url = get_template_directory_uri() . '/assets/img/';
+		$partner_logos = array(
+			array(
+				'image' => $theme_img_url . 'uber-logo.svg',
+				'alt' => 'Uber',
+				'link' => 'https://www.uber.com',
+			),
+			array(
+				'image' => $theme_img_url . 'lyft-logo.svg',
+				'alt' => 'Lyft',
+				'link' => 'https://www.lyft.com',
+			),
+			array(
+				'image' => $theme_img_url . 'doordash-logo.svg',
+				'alt' => 'DoorDash',
+				'link' => 'https://www.doordash.com',
+			),
+		);
+		update_field( 'hero_partner_logos', $partner_logos, 'option' );
+	}
+	
+	if ( $is_already_seeded ) {
         // Force update the map URL if it's the old placeholder one, even if already seeded
         // This is a quick patch to ensure the user sees the map without needing to reset the whole theme
         $current_map = get_field('google_maps_embed_url', 'option');
@@ -498,6 +614,26 @@ function pns_cars_seed_content() {
 		'hero_subheadline' => 'Get behind the wheel of a reliable vehicle and start earning with Uber, Lyft, and DoorDash immediately. No credit checks, easy approval.',
 		'hero_cta_primary' => 'View Available Vehicles',
 		'hero_cta_secondary' => 'Start Your Booking',
+		'hero_partners_text' => 'Perfect for:',
+	);
+	
+	$theme_img_url = get_template_directory_uri() . '/assets/img/';
+	$partner_logos = array(
+		array(
+			'image' => $theme_img_url . 'uber-logo.svg',
+			'alt' => 'Uber',
+			'link' => 'https://www.uber.com',
+		),
+		array(
+			'image' => $theme_img_url . 'lyft-logo.svg',
+			'alt' => 'Lyft',
+			'link' => 'https://www.lyft.com',
+		),
+		array(
+			'image' => $theme_img_url . 'doordash-logo.svg',
+			'alt' => 'DoorDash',
+			'link' => 'https://www.doordash.com',
+		),
 	);
 
 	$steps = array(
@@ -562,6 +698,8 @@ function pns_cars_seed_content() {
 	update_field( 'hero_subheadline', $hero['hero_subheadline'], $option_id );
 	update_field( 'hero_cta_primary', $hero['hero_cta_primary'], $option_id );
 	update_field( 'hero_cta_secondary', $hero['hero_cta_secondary'], $option_id );
+	update_field( 'hero_partners_text', $hero['hero_partners_text'], $option_id );
+	update_field( 'hero_partner_logos', $partner_logos, $option_id );
 
 	// Repeaters need special handling usually, but update_field handles arrays for repeaters well if structure matches.
 	update_field( 'steps', $steps, $option_id );
@@ -617,7 +755,57 @@ function pns_cars_create_homepage_with_blocks() {
 	// Create block content
 	$blocks = array();
 
-	// Hero Block
+	// Hero Block - get partner logos
+	$partners_data = array();
+	$theme_img_url = get_template_directory_uri() . '/assets/img/';
+	
+	if ( function_exists( 'have_rows' ) && have_rows( 'hero_partner_logos', 'option' ) ) {
+		while ( have_rows( 'hero_partner_logos', 'option' ) ) {
+			the_row();
+			$image_url = get_sub_field( 'image' ) ?: '';
+			
+			// Replace external URLs with local ones
+			if ( $image_url ) {
+				if ( strpos( $image_url, 'cloudfront' ) !== false ) {
+					$image_url = $theme_img_url . 'uber-logo.svg';
+				} elseif ( strpos( $image_url, 'ctfassets' ) !== false ) {
+					$image_url = $theme_img_url . 'lyft-logo.svg';
+				} elseif ( strpos( $image_url, 'cdn.doordash' ) !== false ) {
+					$image_url = $theme_img_url . 'doordash-logo.svg';
+				}
+			}
+			
+			$partners_data[] = array(
+				'image' => $image_url,
+				'imageId' => null,
+				'alt' => get_sub_field( 'alt' ) ?: '',
+				'link' => get_sub_field( 'link' ) ?: '',
+			);
+		}
+	}
+	// Default partner logos if empty
+	if ( empty( $partners_data ) ) {
+		$partners_data = array(
+			array(
+				'image' => $theme_img_url . 'uber-logo.svg',
+				'imageId' => null,
+				'alt' => 'Uber',
+				'link' => 'https://www.uber.com',
+			),
+			array(
+				'image' => $theme_img_url . 'lyft-logo.svg',
+				'imageId' => null,
+				'alt' => 'Lyft',
+				'link' => 'https://www.lyft.com',
+			),
+			array(
+				'image' => $theme_img_url . 'doordash-logo.svg',
+				'imageId' => null,
+				'alt' => 'DoorDash',
+				'link' => 'https://www.doordash.com',
+			),
+		);
+	}
 	$blocks[] = array(
 		'blockName' => 'pns-cars/hero',
 		'attrs' => array(
@@ -628,6 +816,7 @@ function pns_cars_create_homepage_with_blocks() {
 			'ctaSecondary' => get_field( 'hero_cta_secondary', 'option' ) ?: 'Start Your Booking',
 			'ctaSecondaryLink' => get_field( 'hero_cta_secondary_link', 'option' ) ?: '#booking',
 			'partnersText' => get_field( 'hero_partners_text', 'option' ) ?: 'Perfect for:',
+			'partners' => $partners_data,
 			'lifestyleImage' => get_field( 'hero_lifestyle_image', 'option' ) ?: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=1000&auto=format&fit=crop',
 			'earningsHeader' => get_field( 'hero_earnings_header', 'option' ) ?: 'Weekly Earnings',
 			'earningsAmount' => get_field( 'hero_earnings_amount', 'option' ) ?: '1426.29',
@@ -795,6 +984,8 @@ function pns_cars_create_homepage_with_blocks() {
 /**
  * Hook: Create homepage with blocks on theme activation
  * Only fires if the page doesn't exist
+ * Seed content runs first (priority 10) to ensure ACF fields are updated
+ * Homepage creation runs second (priority 20) to use the updated ACF data
  */
-add_action( 'after_switch_theme', 'pns_cars_create_homepage_with_blocks' );
-add_action( 'after_switch_theme', 'pns_cars_seed_content' );
+add_action( 'after_switch_theme', 'pns_cars_seed_content', 10 );
+add_action( 'after_switch_theme', 'pns_cars_create_homepage_with_blocks', 20 );

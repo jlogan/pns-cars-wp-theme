@@ -124,9 +124,45 @@ $notif2_sub = ( isset( $attributes['notification2Sub'] ) && $attributes['notific
 				<div class="hero-partners">
 					<span><?php echo esc_html($partners_text); ?></span>
 					<div class="partner-logos">
-						<img src="<?php echo get_template_directory_uri(); ?>/assets/img/uber-logo.svg" alt="Uber" class="partner-logo">
-						<img src="<?php echo get_template_directory_uri(); ?>/assets/img/lyft-logo.svg" alt="Lyft" class="partner-logo">
-						<img src="<?php echo get_template_directory_uri(); ?>/assets/img/doordash-logo.svg" alt="DoorDash" class="partner-logo">
+						<?php
+						// Get partner logos from block attributes
+						$partners = isset( $attributes['partners'] ) && is_array( $attributes['partners'] ) ? $attributes['partners'] : array();
+						
+						// Fallback to ACF if no partners in attributes
+						if ( empty( $partners ) ) {
+							$acf_partners = get_field( 'hero_partner_logos', 'option' );
+							if ( is_array( $acf_partners ) ) {
+								$partners = $acf_partners;
+							}
+						}
+						
+						// Display partner logos
+						if ( ! empty( $partners ) ) {
+							foreach ( $partners as $partner ) {
+								$logo_url = '';
+								$logo_alt = isset( $partner['alt'] ) ? $partner['alt'] : '';
+								$logo_link = isset( $partner['link'] ) ? $partner['link'] : '';
+								
+								// Check for image ID first, then URL
+								if ( isset( $partner['imageId'] ) && $partner['imageId'] ) {
+									$logo_url = wp_get_attachment_image_url( $partner['imageId'], 'full' );
+								}
+								if ( ! $logo_url && isset( $partner['image'] ) && $partner['image'] ) {
+									$logo_url = $partner['image'];
+								}
+								
+								if ( $logo_url ) {
+									if ( $logo_link ) {
+										echo '<a href="' . esc_url( $logo_link ) . '" target="_blank" rel="noopener noreferrer">';
+									}
+									echo '<img src="' . esc_url( $logo_url ) . '" alt="' . esc_attr( $logo_alt ) . '" class="partner-logo">';
+									if ( $logo_link ) {
+										echo '</a>';
+									}
+								}
+							}
+						}
+						?>
 					</div>
 				</div>
 			</div>
