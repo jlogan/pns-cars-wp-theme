@@ -1037,3 +1037,96 @@ function pns_cars_create_homepage_with_blocks() {
  */
 add_action( 'after_switch_theme', 'pns_cars_seed_content', 10 );
 add_action( 'after_switch_theme', 'pns_cars_create_homepage_with_blocks', 20 );
+
+/**
+ * 5. Migrate ACF Footer Contact Values to Customizer (one-time)
+ */
+function pns_cars_migrate_footer_contact_to_customizer() {
+	// Check if migration already ran
+	if ( get_option( 'pns_cars_customizer_migrated' ) ) {
+		return;
+	}
+
+	// Only migrate if ACF is available
+	if ( ! function_exists( 'get_field' ) ) {
+		return;
+	}
+
+	// Get ACF values
+	$acf_address = get_field( 'address_text', 'option' );
+	$acf_phone = get_field( 'contact_phone', 'option' );
+	$acf_email = get_field( 'contact_email', 'option' );
+
+	// Set customizer values only if ACF values exist
+	if ( ! empty( $acf_address ) ) {
+		set_theme_mod( 'pns_cars_address_text', $acf_address );
+	}
+	if ( ! empty( $acf_phone ) ) {
+		set_theme_mod( 'pns_cars_contact_phone', $acf_phone );
+	}
+	if ( ! empty( $acf_email ) ) {
+		set_theme_mod( 'pns_cars_contact_email', $acf_email );
+	}
+
+	// Mark migration as complete
+	update_option( 'pns_cars_customizer_migrated', true );
+}
+add_action( 'after_setup_theme', 'pns_cars_migrate_footer_contact_to_customizer' );
+
+/**
+ * 6. Customizer Settings for Footer Contact Information
+ */
+function pns_cars_customize_register( $wp_customize ) {
+	// Add PNS Cars section
+	$wp_customize->add_section( 'pns_cars_footer_contact', array(
+		'title'       => __( 'Footer Contact Info', 'pns-cars' ),
+		'description' => __( 'Update contact information displayed in the footer', 'pns-cars' ),
+		'priority'    => 130,
+	) );
+
+	// Address Text
+	$wp_customize->add_setting( 'pns_cars_address_text', array(
+		'default'           => "PNS Global Resources L.L.C\n5872 New Peachtree Rd Ste 103\nDoraville, GA 30340\n\nServing the Atlanta Metro Area",
+		'sanitize_callback' => 'wp_kses_post',
+		'transport'         => 'refresh',
+	) );
+
+	$wp_customize->add_control( 'pns_cars_address_text', array(
+		'label'       => __( 'Address', 'pns-cars' ),
+		'description' => __( 'Enter the company address (line breaks will be preserved)', 'pns-cars' ),
+		'section'     => 'pns_cars_footer_contact',
+		'type'        => 'textarea',
+		'priority'    => 10,
+	) );
+
+	// Phone Number
+	$wp_customize->add_setting( 'pns_cars_contact_phone', array(
+		'default'           => '(404) 555-0199',
+		'sanitize_callback' => 'sanitize_text_field',
+		'transport'         => 'refresh',
+	) );
+
+	$wp_customize->add_control( 'pns_cars_contact_phone', array(
+		'label'       => __( 'Phone Number', 'pns-cars' ),
+		'description' => __( 'Enter the contact phone number', 'pns-cars' ),
+		'section'     => 'pns_cars_footer_contact',
+		'type'        => 'text',
+		'priority'    => 20,
+	) );
+
+	// Email Address
+	$wp_customize->add_setting( 'pns_cars_contact_email', array(
+		'default'           => 'rentals@pnscars.com',
+		'sanitize_callback' => 'sanitize_email',
+		'transport'         => 'refresh',
+	) );
+
+	$wp_customize->add_control( 'pns_cars_contact_email', array(
+		'label'       => __( 'Email Address', 'pns-cars' ),
+		'description' => __( 'Enter the contact email address', 'pns-cars' ),
+		'section'     => 'pns_cars_footer_contact',
+		'type'        => 'email',
+		'priority'    => 30,
+	) );
+}
+add_action( 'customize_register', 'pns_cars_customize_register' );

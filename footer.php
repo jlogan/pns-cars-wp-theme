@@ -9,11 +9,42 @@
         <div class="container footer-content">
             <div class="footer-info">
                 <div class="logo">PNS <span>CARS</span></div>
-                <p><?php echo nl2br( esc_html( get_field( 'address_text', 'option' ) ) ); ?></p>
-                <p>
-                    <a href="tel:<?php the_field('contact_phone', 'option'); ?>"><?php the_field('contact_phone', 'option'); ?></a><br>
-                    <a href="mailto:<?php the_field('contact_email', 'option'); ?>"><?php the_field('contact_email', 'option'); ?></a>
-                </p>
+                <?php
+                // Get address from Customizer (with fallback to ACF)
+                $address = get_theme_mod( 'pns_cars_address_text' );
+                if ( empty( $address ) && function_exists( 'get_field' ) ) {
+                    $address = get_field( 'address_text', 'option' );
+                }
+                if ( ! empty( $address ) ) {
+                    echo '<p>' . nl2br( esc_html( $address ) ) . '</p>';
+                }
+                
+                // Get phone from Customizer (with fallback to ACF)
+                $phone = get_theme_mod( 'pns_cars_contact_phone' );
+                if ( empty( $phone ) && function_exists( 'get_field' ) ) {
+                    $phone = get_field( 'contact_phone', 'option' );
+                }
+                
+                // Get email from Customizer (with fallback to ACF)
+                $email = get_theme_mod( 'pns_cars_contact_email' );
+                if ( empty( $email ) && function_exists( 'get_field' ) ) {
+                    $email = get_field( 'contact_email', 'option' );
+                }
+                
+                if ( ! empty( $phone ) || ! empty( $email ) ) {
+                    echo '<p>';
+                    if ( ! empty( $phone ) ) {
+                        echo '<a href="tel:' . esc_attr( $phone ) . '">' . esc_html( $phone ) . '</a>';
+                        if ( ! empty( $email ) ) {
+                            echo '<br>';
+                        }
+                    }
+                    if ( ! empty( $email ) ) {
+                        echo '<a href="mailto:' . esc_attr( $email ) . '">' . esc_html( $email ) . '</a>';
+                    }
+                    echo '</p>';
+                }
+                ?>
             </div>
             
             <div class="footer-links">
