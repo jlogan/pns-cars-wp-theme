@@ -109,6 +109,18 @@ function pns_cars_block_editor_assets() {
 				'alt' => 'DoorDash',
 				'link' => 'https://www.doordash.com',
 			),
+			array(
+				'image' => $theme_img_url . 'instacart-logo.svg',
+				'imageId' => null,
+				'alt' => 'Instacart',
+				'link' => 'https://www.instacart.com',
+			),
+			array(
+				'image' => $theme_img_url . 'shipt-logo.svg',
+				'imageId' => null,
+				'alt' => 'Shipt',
+				'link' => 'https://www.shipt.com',
+			),
 		);
 	}
 	$acf_data['hero'] = array(
@@ -552,11 +564,14 @@ function pns_cars_seed_content() {
 
 	$is_already_seeded = get_option( 'pns_cars_seeded' );
 	
-	// Always check and update partner logos if empty OR if they contain external URLs (even if already seeded)
+	// Always check and update partner logos if empty, contain external URLs, or have less than 5 logos (even if already seeded)
 	$current_partners = get_field( 'hero_partner_logos', 'option' );
 	$needs_update = false;
 	
 	if ( empty( $current_partners ) || ! is_array( $current_partners ) || count( $current_partners ) === 0 ) {
+		$needs_update = true;
+	} elseif ( count( $current_partners ) < 5 ) {
+		// If there are less than 5 logos, update to include all 5
 		$needs_update = true;
 	} else {
 		// Check if any partner logo uses external URLs
@@ -591,6 +606,16 @@ function pns_cars_seed_content() {
 				'image' => $theme_img_url . 'doordash-logo.svg',
 				'alt' => 'DoorDash',
 				'link' => 'https://www.doordash.com',
+			),
+			array(
+				'image' => $theme_img_url . 'instacart-logo.svg',
+				'alt' => 'Instacart',
+				'link' => 'https://www.instacart.com',
+			),
+			array(
+				'image' => $theme_img_url . 'shipt-logo.svg',
+				'alt' => 'Shipt',
+				'link' => 'https://www.shipt.com',
 			),
 		);
 		update_field( 'hero_partner_logos', $partner_logos, 'option' );
@@ -633,6 +658,16 @@ function pns_cars_seed_content() {
 			'image' => $theme_img_url . 'doordash-logo.svg',
 			'alt' => 'DoorDash',
 			'link' => 'https://www.doordash.com',
+		),
+		array(
+			'image' => $theme_img_url . 'instacart-logo.svg',
+			'alt' => 'Instacart',
+			'link' => 'https://www.instacart.com',
+		),
+		array(
+			'image' => $theme_img_url . 'shipt-logo.svg',
+			'alt' => 'Shipt',
+			'link' => 'https://www.shipt.com',
 		),
 	);
 
@@ -766,13 +801,14 @@ function pns_cars_create_homepage_with_blocks() {
 			
 			// Replace external URLs with local ones
 			if ( $image_url ) {
-				if ( strpos( $image_url, 'cloudfront' ) !== false ) {
-					$image_url = $theme_img_url . 'uber-logo.svg';
-				} elseif ( strpos( $image_url, 'ctfassets' ) !== false ) {
-					$image_url = $theme_img_url . 'lyft-logo.svg';
-				} elseif ( strpos( $image_url, 'cdn.doordash' ) !== false ) {
-					$image_url = $theme_img_url . 'doordash-logo.svg';
-				}
+					if ( strpos( $image_url, 'cloudfront' ) !== false ) {
+						$image_url = $theme_img_url . 'uber-logo.svg';
+					} elseif ( strpos( $image_url, 'ctfassets' ) !== false ) {
+						$image_url = $theme_img_url . 'lyft-logo.svg';
+					} elseif ( strpos( $image_url, 'cdn.doordash' ) !== false ) {
+						$image_url = $theme_img_url . 'doordash-logo.svg';
+					}
+					// Note: Instacart and Shipt don't need URL replacement as they're new additions
 			}
 			
 			$partners_data[] = array(
@@ -783,8 +819,8 @@ function pns_cars_create_homepage_with_blocks() {
 			);
 		}
 	}
-	// Default partner logos if empty
-	if ( empty( $partners_data ) ) {
+	// Default partner logos if empty OR if less than 5 logos (to ensure all 5 are included)
+	if ( empty( $partners_data ) || count( $partners_data ) < 5 ) {
 		$partners_data = array(
 			array(
 				'image' => $theme_img_url . 'uber-logo.svg',
@@ -803,6 +839,18 @@ function pns_cars_create_homepage_with_blocks() {
 				'imageId' => null,
 				'alt' => 'DoorDash',
 				'link' => 'https://www.doordash.com',
+			),
+			array(
+				'image' => $theme_img_url . 'instacart-logo.svg',
+				'imageId' => null,
+				'alt' => 'Instacart',
+				'link' => 'https://www.instacart.com',
+			),
+			array(
+				'image' => $theme_img_url . 'shipt-logo.svg',
+				'imageId' => null,
+				'alt' => 'Shipt',
+				'link' => 'https://www.shipt.com',
 			),
 		);
 	}
