@@ -3,36 +3,26 @@
  * How It Works Block Render
  */
 
-// Ensure $attributes is an array (WordPress should pass this, but be safe)
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+// Ensure $attributes is an array
 if ( ! is_array( $attributes ) ) {
 	$attributes = array();
 }
 
-// Get values from block attributes, fallback to ACF options
-// Check if attribute key exists and has a value (even if empty string)
-// Only fallback to ACF if the attribute key doesn't exist in the saved block
-$heading = ( isset( $attributes['heading'] ) && $attributes['heading'] !== null ) 
-	? $attributes['heading'] 
-	: ( get_field( 'how_it_works_heading', 'option' ) ?: 'How It Works' );
-	
-$steps = ( isset( $attributes['steps'] ) && is_array( $attributes['steps'] ) ) 
-	? $attributes['steps'] 
-	: [];
+// Get heading with ACF fallback
+$heading = pns_cars_get_block_attr( $attributes, 'heading', 'how_it_works_heading', 'How It Works' );
 
-// If steps are empty, get from ACF
-if (empty($steps) && function_exists('have_rows')) {
-	$steps = array();
-	if (have_rows('steps', 'option')) {
-		while (have_rows('steps', 'option')) {
-			the_row();
-			$steps[] = array(
-				'title' => get_sub_field('title') ?: '',
-				'description' => get_sub_field('description') ?: '',
-				'icon' => get_sub_field('icon') ?: '',
-			);
-		}
-	}
-}
+// Get steps from attributes or ACF
+$steps = ( isset( $attributes['steps'] ) && is_array( $attributes['steps'] ) && ! empty( $attributes['steps'] ) )
+	? $attributes['steps']
+	: pns_cars_get_acf_repeater( 'steps', array(
+		'title' => 'title',
+		'description' => 'description',
+		'icon' => 'icon',
+	) );
 ?>
 
 <?php if ( ! empty( $steps ) ): ?>

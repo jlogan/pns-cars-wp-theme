@@ -3,35 +3,25 @@
  * Services Block Render
  */
 
-// Ensure $attributes is an array (WordPress should pass this, but be safe)
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+// Ensure $attributes is an array
 if ( ! is_array( $attributes ) ) {
 	$attributes = array();
 }
 
-// Get values from block attributes, fallback to ACF options
-// Check if attribute key exists and has a value (even if empty string)
-// Only fallback to ACF if the attribute key doesn't exist in the saved block
-$heading = ( isset( $attributes['heading'] ) && $attributes['heading'] !== null ) 
-	? $attributes['heading'] 
-	: ( get_field( 'services_heading', 'option' ) ?: 'Benefits for Drivers' );
-	
-$services = ( isset( $attributes['services'] ) && is_array( $attributes['services'] ) ) 
-	? $attributes['services'] 
-	: [];
+// Get heading with ACF fallback
+$heading = pns_cars_get_block_attr( $attributes, 'heading', 'services_heading', 'Benefits for Drivers' );
 
-// If services are empty, get from ACF
-if (empty($services) && function_exists('have_rows')) {
-	$services = array();
-	if (have_rows('services_list', 'option')) {
-		while (have_rows('services_list', 'option')) {
-			the_row();
-			$services[] = array(
-				'title' => get_sub_field('title') ?: '',
-				'description' => get_sub_field('description') ?: '',
-			);
-		}
-	}
-}
+// Get services from attributes or ACF
+$services = ( isset( $attributes['services'] ) && is_array( $attributes['services'] ) && ! empty( $attributes['services'] ) )
+	? $attributes['services']
+	: pns_cars_get_acf_repeater( 'services_list', array(
+		'title' => 'title',
+		'description' => 'description',
+	) );
 ?>
 
 <?php if ( ! empty( $services ) ): ?>

@@ -23,13 +23,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Header Scroll Effect
+    // Header Scroll Effect (throttled for performance)
     const header = document.querySelector('.site-header');
-    window.addEventListener('scroll', () => {
+    let ticking = false;
+    function updateHeader() {
         if (window.scrollY > 50) {
             header.classList.add('scrolled');
         } else {
             header.classList.remove('scrolled');
+        }
+        ticking = false;
+    }
+    window.addEventListener('scroll', () => {
+        if (!ticking) {
+            window.requestAnimationFrame(updateHeader);
+            ticking = true;
         }
     });
 

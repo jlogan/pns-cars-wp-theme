@@ -34,8 +34,9 @@ function pns_cars_setup() {
 add_action( 'after_setup_theme', 'pns_cars_setup' );
 
 /**
- * 2. Include Blocks
+ * 2. Include Files
  */
+require_once get_template_directory() . '/includes/helpers.php';
 require_once get_template_directory() . '/includes/class-blocks.php';
 require_once get_template_directory() . '/includes/block-debug.php';
 
@@ -71,174 +72,8 @@ function pns_cars_block_editor_assets() {
 		true
 	);
 	
-	// Localize ACF data for block editor
-	$acf_data = array();
-	
-	// Hero data - get partner logos from ACF
-	$partners_data = array();
-	if ( function_exists( 'have_rows' ) && have_rows( 'hero_partner_logos', 'option' ) ) {
-		while ( have_rows( 'hero_partner_logos', 'option' ) ) {
-			the_row();
-			$partners_data[] = array(
-				'image' => get_sub_field( 'image' ) ?: '',
-				'imageId' => null, // ACF stores URL, not ID
-				'alt' => get_sub_field( 'alt' ) ?: '',
-				'link' => get_sub_field( 'link' ) ?: '',
-			);
-		}
-	}
-	// Default partner logos if empty
-	if ( empty( $partners_data ) ) {
-		$theme_img_url = get_template_directory_uri() . '/assets/img/';
-		$partners_data = array(
-			array(
-				'image' => $theme_img_url . 'uber-logo.png',
-				'imageId' => null,
-				'alt' => 'Uber',
-				'link' => 'https://www.uber.com',
-			),
-			array(
-				'image' => $theme_img_url . 'lyft-logo.svg',
-				'imageId' => null,
-				'alt' => 'Lyft',
-				'link' => 'https://www.lyft.com',
-			),
-			array(
-				'image' => $theme_img_url . 'doordash-logo.svg',
-				'imageId' => null,
-				'alt' => 'DoorDash',
-				'link' => 'https://www.doordash.com',
-			),
-			array(
-				'image' => $theme_img_url . 'instacart-logo.svg',
-				'imageId' => null,
-				'alt' => 'Instacart',
-				'link' => 'https://www.instacart.com',
-			),
-			array(
-				'image' => $theme_img_url . 'shipt-logo.svg',
-				'imageId' => null,
-				'alt' => 'Shipt',
-				'link' => 'https://www.shipt.com',
-			),
-		);
-	}
-	$acf_data['hero'] = array(
-		'headline' => get_field( 'hero_headline', 'option' ) ?: 'Drive today. Earn this week.',
-		'subheadline' => get_field( 'hero_subheadline', 'option' ) ?: 'Get behind the wheel of a reliable vehicle and start earning with Uber, Lyft, and DoorDash immediately. No credit checks, easy approval.',
-		'ctaPrimary' => get_field( 'hero_cta_primary', 'option' ) ?: 'View Available Vehicles',
-		'ctaPrimaryLink' => get_field( 'hero_cta_primary_link', 'option' ) ?: '#vehicles',
-		'ctaSecondary' => get_field( 'hero_cta_secondary', 'option' ) ?: 'Start Your Booking',
-		'ctaSecondaryLink' => get_field( 'hero_cta_secondary_link', 'option' ) ?: '#booking',
-		'partnersText' => get_field( 'hero_partners_text', 'option' ) ?: 'Perfect for:',
-		'partners' => $partners_data,
-		'lifestyleImage' => get_field( 'hero_lifestyle_image', 'option' ) ?: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=1000&auto=format&fit=crop',
-		'lifestyleImageId' => null, // Will be set if image is uploaded via media library
-		'earningsHeader' => get_field( 'hero_earnings_header', 'option' ) ?: 'Weekly Earnings',
-		'earningsAmount' => get_field( 'hero_earnings_amount', 'option' ) ?: '1426.29',
-		'earningsSubtext' => get_field( 'hero_earnings_subtext', 'option' ) ?: 'Oct 4 - Oct 10 • 33 Trips',
-		'earningsOnline' => get_field( 'hero_earnings_online', 'option' ) ?: '20h 16m',
-		'earningsTips' => get_field( 'hero_earnings_tips', 'option' ) ?: '+$187.24',
-		'notification1Icon' => get_field( 'hero_notification1_icon', 'option' ) ?: '💰',
-		'notification1Title' => get_field( 'hero_notification1_title', 'option' ) ?: 'Payout Processed',
-		'notification1Sub' => get_field( 'hero_notification1_sub', 'option' ) ?: 'You received $999.41',
-		'notification2Icon' => get_field( 'hero_notification2_icon', 'option' ) ?: '🚗',
-		'notification2Title' => get_field( 'hero_notification2_title', 'option' ) ?: 'New Tip!',
-		'notification2Sub' => get_field( 'hero_notification2_sub', 'option' ) ?: '+$15.00 from Sarah',
-	);
-	
-	// How It Works data
-	$steps_data = array();
-	if ( function_exists( 'have_rows' ) && have_rows( 'steps', 'option' ) ) {
-		while ( have_rows( 'steps', 'option' ) ) {
-			the_row();
-			$steps_data[] = array(
-				'title' => get_sub_field( 'title' ) ?: '',
-				'description' => get_sub_field( 'description' ) ?: '',
-				'icon' => get_sub_field( 'icon' ) ?: '',
-			);
-		}
-	}
-	$acf_data['howItWorks'] = array(
-		'heading' => get_field( 'how_it_works_heading', 'option' ) ?: 'How It Works',
-		'steps' => $steps_data,
-	);
-	
-	// Services data
-	$services_data = array();
-	if ( function_exists( 'have_rows' ) && have_rows( 'services_list', 'option' ) ) {
-		while ( have_rows( 'services_list', 'option' ) ) {
-			the_row();
-			$services_data[] = array(
-				'title' => get_sub_field( 'title' ) ?: '',
-				'description' => get_sub_field( 'description' ) ?: '',
-			);
-		}
-	}
-	$acf_data['services'] = array(
-		'heading' => get_field( 'services_heading', 'option' ) ?: 'Benefits for Drivers',
-		'services' => $services_data,
-	);
-	
-	// Vehicles data
-	$acf_data['vehicles'] = array(
-		'heading' => get_field( 'vehicles_heading', 'option' ) ?: 'Available Vehicles',
-		'count' => get_field( 'vehicles_count', 'option' ) !== false ? get_field( 'vehicles_count', 'option' ) : -1,
-		'perRow' => get_field( 'vehicles_per_row', 'option' ) ?: 3,
-	);
-	
-	// Pricing data
-	$pricing_list_items = array();
-	if ( function_exists( 'have_rows' ) && have_rows( 'pricing_list_items', 'option' ) ) {
-		while ( have_rows( 'pricing_list_items', 'option' ) ) {
-			the_row();
-			$item = get_sub_field( 'item' );
-			if ( $item ) {
-				$pricing_list_items[] = $item;
-			}
-		}
-	}
-	if ( empty( $pricing_list_items ) ) {
-		$pricing_list_items = array(
-			'$250 Refundable Deposit',
-			'Weekly automatic payments',
-			'Minimum 2-week rental'
-		);
-	}
-	$acf_data['pricing'] = array(
-		'headline' => get_field( 'pricing_headline', 'option' ) ?: 'Simple, Transparent Pricing',
-		'introText' => get_field( 'pricing_intro_text', 'option' ) ?: 'No hidden fees. One weekly price covers the car, insurance, and maintenance.',
-		'listItems' => $pricing_list_items,
-		'buttonText' => get_field( 'pricing_button_text', 'option' ) ?: 'Choose Your Car',
-		'buttonLink' => get_field( 'pricing_button_link', 'option' ) ?: '#vehicles',
-	);
-	
-	// FAQ data
-	$faqs_data = array();
-	if ( function_exists( 'have_rows' ) && have_rows( 'faqs', 'option' ) ) {
-		while ( have_rows( 'faqs', 'option' ) ) {
-			the_row();
-			$faqs_data[] = array(
-				'question' => get_sub_field( 'question' ) ?: '',
-				'answer' => get_sub_field( 'answer' ) ?: '',
-			);
-		}
-	}
-	$acf_data['faq'] = array(
-		'heading' => get_field( 'faq_heading', 'option' ) ?: 'Frequently Asked Questions',
-		'faqs' => $faqs_data,
-	);
-	
-	// Location data
-	$acf_data['location'] = array(
-		'heading' => get_field( 'location_heading', 'option' ) ?: 'Find Us',
-		'addressText' => get_field( 'address_text', 'option' ) ?: "PNS Global Resources L.L.C<br>\n5872 New Peachtree Rd Ste 103<br>\nDoraville, GA 30340<br>\n<br>\nServing the Atlanta Metro Area",
-		'servingText' => get_field( 'location_serving_text', 'option' ) ?: 'Serving the Atlanta Metro Area with reliable vehicles for gig drivers. Stop by our office to see the fleet in person.',
-		'mapLink' => get_field( 'map_link', 'option' ) ?: 'https://goo.gl/maps/place/5872+New+Peachtree+Rd+Ste+103,+Doraville,+GA+30340',
-		'buttonText' => get_field( 'location_button_text', 'option' ) ?: 'Get Directions',
-		'googleMapsEmbedUrl' => get_field( 'google_maps_embed_url', 'option' ) ?: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d17969.587510091234!2d-84.29384894259061!3d33.90250098033048!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x88f509c59cbfffff%3A0xfb53040bca7eb8ed!2s5872%20New%20Peachtree%20Rd%20Ste%20103%2C%20Doraville%2C%20GA%2030340!5e0!3m2!1sen!2sus!4v1764203567826!5m2!1sen!2sus',
-	);
-	
+	// Localize ACF data for block editor using helper function
+	$acf_data = pns_cars_get_acf_data_for_editor();
 	wp_localize_script( 'pns-cars-block-editor', 'pnsCarsACFData', $acf_data );
 }
 add_action( 'enqueue_block_editor_assets', 'pns_cars_block_editor_assets' );
@@ -564,61 +399,19 @@ function pns_cars_seed_content() {
 
 	$is_already_seeded = get_option( 'pns_cars_seeded' );
 	
-	// Always check and update partner logos if empty, contain external URLs, or have less than 5 logos (even if already seeded)
-	$current_partners = get_field( 'hero_partner_logos', 'option' );
-	$needs_update = false;
-	
-	if ( empty( $current_partners ) || ! is_array( $current_partners ) || count( $current_partners ) === 0 ) {
-		$needs_update = true;
-	} elseif ( count( $current_partners ) < 5 ) {
-		// If there are less than 5 logos, update to include all 5
-		$needs_update = true;
-	} else {
-		// Check if any partner logo uses external URLs
-		foreach ( $current_partners as $partner ) {
-			if ( isset( $partner['image'] ) && $partner['image'] ) {
-				// Check if it's an external URL (not from our theme directory)
-				if ( strpos( $partner['image'], 'cloudfront' ) !== false || 
-					 strpos( $partner['image'], 'ctfassets' ) !== false || 
-					 strpos( $partner['image'], 'cdn.doordash' ) !== false ||
-					 ( strpos( $partner['image'], get_template_directory_uri() ) === false && strpos( $partner['image'], 'http' ) === 0 ) ) {
-					$needs_update = true;
-					break;
-				}
-			}
+	// Always check and update partner logos if needed (even if already seeded)
+	if ( pns_cars_partner_logos_need_update() ) {
+		$partner_logos = pns_cars_get_default_partner_logos();
+		// Remove imageId key for ACF compatibility
+		$partner_logos_for_acf = array();
+		foreach ( $partner_logos as $partner ) {
+			$partner_logos_for_acf[] = array(
+				'image' => $partner['image'],
+				'alt' => $partner['alt'],
+				'link' => $partner['link'],
+			);
 		}
-	}
-	
-	if ( $needs_update ) {
-		$theme_img_url = get_template_directory_uri() . '/assets/img/';
-		$partner_logos = array(
-			array(
-				'image' => $theme_img_url . 'uber-logo.png',
-				'alt' => 'Uber',
-				'link' => 'https://www.uber.com',
-			),
-			array(
-				'image' => $theme_img_url . 'lyft-logo.svg',
-				'alt' => 'Lyft',
-				'link' => 'https://www.lyft.com',
-			),
-			array(
-				'image' => $theme_img_url . 'doordash-logo.svg',
-				'alt' => 'DoorDash',
-				'link' => 'https://www.doordash.com',
-			),
-			array(
-				'image' => $theme_img_url . 'instacart-logo.svg',
-				'alt' => 'Instacart',
-				'link' => 'https://www.instacart.com',
-			),
-			array(
-				'image' => $theme_img_url . 'shipt-logo.svg',
-				'alt' => 'Shipt',
-				'link' => 'https://www.shipt.com',
-			),
-		);
-		update_field( 'hero_partner_logos', $partner_logos, 'option' );
+		update_field( 'hero_partner_logos', $partner_logos_for_acf, 'option' );
 	}
 	
 	if ( $is_already_seeded ) {
@@ -642,34 +435,16 @@ function pns_cars_seed_content() {
 		'hero_partners_text' => 'Perfect for:',
 	);
 	
-	$theme_img_url = get_template_directory_uri() . '/assets/img/';
-	$partner_logos = array(
-		array(
-			'image' => $theme_img_url . 'uber-logo.png',
-			'alt' => 'Uber',
-			'link' => 'https://www.uber.com',
-		),
-		array(
-			'image' => $theme_img_url . 'lyft-logo.svg',
-			'alt' => 'Lyft',
-			'link' => 'https://www.lyft.com',
-		),
-		array(
-			'image' => $theme_img_url . 'doordash-logo.svg',
-			'alt' => 'DoorDash',
-			'link' => 'https://www.doordash.com',
-		),
-		array(
-			'image' => $theme_img_url . 'instacart-logo.svg',
-			'alt' => 'Instacart',
-			'link' => 'https://www.instacart.com',
-		),
-		array(
-			'image' => $theme_img_url . 'shipt-logo.svg',
-			'alt' => 'Shipt',
-			'link' => 'https://www.shipt.com',
-		),
-	);
+	$partner_logos = pns_cars_get_default_partner_logos();
+	// Remove imageId key for ACF compatibility
+	$partner_logos_for_acf = array();
+	foreach ( $partner_logos as $partner ) {
+		$partner_logos_for_acf[] = array(
+			'image' => $partner['image'],
+			'alt' => $partner['alt'],
+			'link' => $partner['link'],
+		);
+	}
 
 	$steps = array(
 		array(
@@ -734,7 +509,7 @@ function pns_cars_seed_content() {
 	update_field( 'hero_cta_primary', $hero['hero_cta_primary'], $option_id );
 	update_field( 'hero_cta_secondary', $hero['hero_cta_secondary'], $option_id );
 	update_field( 'hero_partners_text', $hero['hero_partners_text'], $option_id );
-	update_field( 'hero_partner_logos', $partner_logos, $option_id );
+	update_field( 'hero_partner_logos', $partner_logos_for_acf, $option_id );
 
 	// Repeaters need special handling usually, but update_field handles arrays for repeaters well if structure matches.
 	update_field( 'steps', $steps, $option_id );
@@ -787,140 +562,54 @@ function pns_cars_create_homepage_with_blocks() {
 		return;
 	}
 
-	// Create block content
+	// Get ACF data for all blocks using helper function
+	$acf_data = pns_cars_get_acf_data_for_editor();
+	
+	// Create block content from ACF data
 	$blocks = array();
 
-	// Hero Block - get partner logos
-	$partners_data = array();
-	$theme_img_url = get_template_directory_uri() . '/assets/img/';
-	
-	if ( function_exists( 'have_rows' ) && have_rows( 'hero_partner_logos', 'option' ) ) {
-		while ( have_rows( 'hero_partner_logos', 'option' ) ) {
-			the_row();
-			$image_url = get_sub_field( 'image' ) ?: '';
-			
-			// Replace external URLs with local ones
-			if ( $image_url ) {
-					if ( strpos( $image_url, 'cloudfront' ) !== false ) {
-						$image_url = $theme_img_url . 'uber-logo.png';
-					} elseif ( strpos( $image_url, 'ctfassets' ) !== false ) {
-						$image_url = $theme_img_url . 'lyft-logo.svg';
-					} elseif ( strpos( $image_url, 'cdn.doordash' ) !== false ) {
-						$image_url = $theme_img_url . 'doordash-logo.svg';
-					}
-					// Note: Instacart and Shipt don't need URL replacement as they're new additions
-			}
-			
-			$partners_data[] = array(
-				'image' => $image_url,
-				'imageId' => null,
-				'alt' => get_sub_field( 'alt' ) ?: '',
-				'link' => get_sub_field( 'link' ) ?: '',
-			);
-		}
-	}
-	// Default partner logos if empty OR if less than 5 logos (to ensure all 5 are included)
-	if ( empty( $partners_data ) || count( $partners_data ) < 5 ) {
-		$partners_data = array(
-			array(
-				'image' => $theme_img_url . 'uber-logo.png',
-				'imageId' => null,
-				'alt' => 'Uber',
-				'link' => 'https://www.uber.com',
-			),
-			array(
-				'image' => $theme_img_url . 'lyft-logo.svg',
-				'imageId' => null,
-				'alt' => 'Lyft',
-				'link' => 'https://www.lyft.com',
-			),
-			array(
-				'image' => $theme_img_url . 'doordash-logo.svg',
-				'imageId' => null,
-				'alt' => 'DoorDash',
-				'link' => 'https://www.doordash.com',
-			),
-			array(
-				'image' => $theme_img_url . 'instacart-logo.svg',
-				'imageId' => null,
-				'alt' => 'Instacart',
-				'link' => 'https://www.instacart.com',
-			),
-			array(
-				'image' => $theme_img_url . 'shipt-logo.svg',
-				'imageId' => null,
-				'alt' => 'Shipt',
-				'link' => 'https://www.shipt.com',
-			),
-		);
-	}
+	// Hero Block
+	$hero_data = $acf_data['hero'];
 	$blocks[] = array(
 		'blockName' => 'pns-cars/hero',
 		'attrs' => array(
-			'headline' => get_field( 'hero_headline', 'option' ) ?: 'Drive today. Earn this week.',
-			'subheadline' => get_field( 'hero_subheadline', 'option' ) ?: 'Get behind the wheel of a reliable vehicle and start earning with Uber, Lyft, and DoorDash immediately. No credit checks, easy approval.',
-			'ctaPrimary' => get_field( 'hero_cta_primary', 'option' ) ?: 'View Available Vehicles',
-			'ctaPrimaryLink' => get_field( 'hero_cta_primary_link', 'option' ) ?: '#vehicles',
-			'ctaSecondary' => get_field( 'hero_cta_secondary', 'option' ) ?: 'Start Your Booking',
-			'ctaSecondaryLink' => get_field( 'hero_cta_secondary_link', 'option' ) ?: '#booking',
-			'partnersText' => get_field( 'hero_partners_text', 'option' ) ?: 'Perfect for:',
-			'partners' => $partners_data,
-			'lifestyleImage' => get_field( 'hero_lifestyle_image', 'option' ) ?: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=1000&auto=format&fit=crop',
-			'earningsHeader' => get_field( 'hero_earnings_header', 'option' ) ?: 'Weekly Earnings',
-			'earningsAmount' => get_field( 'hero_earnings_amount', 'option' ) ?: '1426.29',
-			'earningsSubtext' => get_field( 'hero_earnings_subtext', 'option' ) ?: 'Oct 4 - Oct 10 • 33 Trips',
-			'earningsOnline' => get_field( 'hero_earnings_online', 'option' ) ?: '20h 16m',
-			'earningsTips' => get_field( 'hero_earnings_tips', 'option' ) ?: '+$187.24',
-			'notification1Icon' => get_field( 'hero_notification1_icon', 'option' ) ?: '💰',
-			'notification1Title' => get_field( 'hero_notification1_title', 'option' ) ?: 'Payout Processed',
-			'notification1Sub' => get_field( 'hero_notification1_sub', 'option' ) ?: 'You received $999.41',
-			'notification2Icon' => get_field( 'hero_notification2_icon', 'option' ) ?: '🚗',
-			'notification2Title' => get_field( 'hero_notification2_title', 'option' ) ?: 'New Tip!',
-			'notification2Sub' => get_field( 'hero_notification2_sub', 'option' ) ?: '+$15.00 from Sarah',
+			'headline' => $hero_data['headline'],
+			'subheadline' => $hero_data['subheadline'],
+			'ctaPrimary' => $hero_data['ctaPrimary'],
+			'ctaPrimaryLink' => $hero_data['ctaPrimaryLink'],
+			'ctaSecondary' => $hero_data['ctaSecondary'],
+			'ctaSecondaryLink' => $hero_data['ctaSecondaryLink'],
+			'partnersText' => $hero_data['partnersText'],
+			'partners' => $hero_data['partners'],
+			'lifestyleImage' => $hero_data['lifestyleImage'],
+			'earningsHeader' => $hero_data['earningsHeader'],
+			'earningsAmount' => $hero_data['earningsAmount'],
+			'earningsSubtext' => $hero_data['earningsSubtext'],
+			'earningsOnline' => $hero_data['earningsOnline'],
+			'earningsTips' => $hero_data['earningsTips'],
+			'notification1Icon' => $hero_data['notification1Icon'],
+			'notification1Title' => $hero_data['notification1Title'],
+			'notification1Sub' => $hero_data['notification1Sub'],
+			'notification2Icon' => $hero_data['notification2Icon'],
+			'notification2Title' => $hero_data['notification2Title'],
+			'notification2Sub' => $hero_data['notification2Sub'],
 		),
 		'innerBlocks' => array(),
 		'innerContent' => array(),
 	);
 
 	// How It Works Block
-	$steps_data = array();
-	if ( function_exists( 'have_rows' ) && have_rows( 'steps', 'option' ) ) {
-		while ( have_rows( 'steps', 'option' ) ) {
-			the_row();
-			$steps_data[] = array(
-				'title' => get_sub_field( 'title' ) ?: '',
-				'description' => get_sub_field( 'description' ) ?: '',
-				'icon' => get_sub_field( 'icon' ) ?: '',
-			);
-		}
-	}
 	$blocks[] = array(
 		'blockName' => 'pns-cars/how-it-works',
-		'attrs' => array(
-			'heading' => get_field( 'how_it_works_heading', 'option' ) ?: 'How It Works',
-			'steps' => $steps_data,
-		),
+		'attrs' => $acf_data['howItWorks'],
 		'innerBlocks' => array(),
 		'innerContent' => array(),
 	);
 
 	// Services Block
-	$services_data = array();
-	if ( function_exists( 'have_rows' ) && have_rows( 'services_list', 'option' ) ) {
-		while ( have_rows( 'services_list', 'option' ) ) {
-			the_row();
-			$services_data[] = array(
-				'title' => get_sub_field( 'title' ) ?: '',
-				'description' => get_sub_field( 'description' ) ?: '',
-			);
-		}
-	}
 	$blocks[] = array(
 		'blockName' => 'pns-cars/services',
-		'attrs' => array(
-			'heading' => get_field( 'services_heading', 'option' ) ?: 'Benefits for Drivers',
-			'services' => $services_data,
-		),
+		'attrs' => $acf_data['services'],
 		'innerBlocks' => array(),
 		'innerContent' => array(),
 	);
@@ -928,63 +617,29 @@ function pns_cars_create_homepage_with_blocks() {
 	// Vehicles Block
 	$blocks[] = array(
 		'blockName' => 'pns-cars/vehicles',
-		'attrs' => array(
-			'heading' => get_field( 'vehicles_heading', 'option' ) ?: 'Available Vehicles',
-			'count' => get_field( 'vehicles_count', 'option' ) ?: -1,
-			'perRow' => get_field( 'vehicles_per_row', 'option' ) ?: 3,
-		),
+		'attrs' => $acf_data['vehicles'],
 		'innerBlocks' => array(),
 		'innerContent' => array(),
 	);
 
-	// Pricing Block
-	$pricing_list_items = array();
-	if ( function_exists( 'have_rows' ) && have_rows( 'pricing_list_items', 'option' ) ) {
-		while ( have_rows( 'pricing_list_items', 'option' ) ) {
-			the_row();
-			$item = get_sub_field( 'item' );
-			if ( $item ) {
-				$pricing_list_items[] = $item;
-			}
-		}
+	// Pricing Block - normalize listItems format
+	$pricing_attrs = $acf_data['pricing'];
+	$list_items = array();
+	foreach ( $pricing_attrs['listItems'] as $item ) {
+		$list_items[] = is_array( $item ) && isset( $item['item'] ) ? $item['item'] : $item;
 	}
-	if ( empty( $pricing_list_items ) ) {
-		$pricing_list_items = array(
-			'$250 Refundable Deposit',
-			'Weekly automatic payments',
-			'Minimum 2-week rental'
-		);
-	}
+	$pricing_attrs['listItems'] = $list_items;
 	$blocks[] = array(
 		'blockName' => 'pns-cars/pricing',
-		'attrs' => array(
-			'headline' => get_field( 'pricing_headline', 'option' ) ?: 'Simple, Transparent Pricing',
-			'introText' => get_field( 'pricing_intro_text', 'option' ) ?: 'No hidden fees. One weekly price covers the car, insurance, and maintenance.',
-			'listItems' => $pricing_list_items,
-			'buttonText' => get_field( 'pricing_button_text', 'option' ) ?: 'Choose Your Car',
-			'buttonLink' => get_field( 'pricing_button_link', 'option' ) ?: '#vehicles',
-		),
+		'attrs' => $pricing_attrs,
 		'innerBlocks' => array(),
 		'innerContent' => array(),
 	);
 
 	// FAQ Block
-	$faqs_data = array();
-	if ( function_exists( 'have_rows' ) && have_rows( 'faqs', 'option' ) ) {
-		while ( have_rows( 'faqs', 'option' ) ) {
-			the_row();
-			$faqs_data[] = array(
-				'question' => get_sub_field( 'question' ) ?: '',
-				'answer' => get_sub_field( 'answer' ) ?: '',
-			);
-		}
-	}
 	$blocks[] = array(
 		'blockName' => 'pns-cars/faq',
-		'attrs' => array(
-			'heading' => get_field( 'faq_heading', 'option' ) ?: 'Frequently Asked Questions',
-			'faqs' => $faqs_data,
-		),
+		'attrs' => $acf_data['faq'],
 		'innerBlocks' => array(),
 		'innerContent' => array(),
 	);
@@ -992,14 +647,7 @@ function pns_cars_create_homepage_with_blocks() {
 	// Location Block
 	$blocks[] = array(
 		'blockName' => 'pns-cars/location',
-		'attrs' => array(
-			'heading' => get_field( 'location_heading', 'option' ) ?: 'Find Us',
-			'addressText' => get_field( 'address_text', 'option' ) ?: "PNS Global Resources L.L.C<br>\n5872 New Peachtree Rd Ste 103<br>\nDoraville, GA 30340<br>\n<br>\nServing the Atlanta Metro Area",
-			'servingText' => get_field( 'location_serving_text', 'option' ) ?: 'Serving the Atlanta Metro Area with reliable vehicles for gig drivers. Stop by our office to see the fleet in person.',
-			'mapLink' => get_field( 'map_link', 'option' ) ?: 'https://goo.gl/maps/place/5872+New+Peachtree+Rd+Ste+103,+Doraville,+GA+30340',
-			'buttonText' => get_field( 'location_button_text', 'option' ) ?: 'Get Directions',
-			'googleMapsEmbedUrl' => get_field( 'google_maps_embed_url', 'option' ) ?: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d17969.587510091234!2d-84.29384894259061!3d33.90250098033048!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x88f509c59cbfffff%3A0xfb53040bca7eb8ed!2s5872%20New%20Peachtree%20Rd%20Ste%20103%2C%20Doraville%2C%20GA%2030340!5e0!3m2!1sen!2sus!4v1764203567826!5m2!1sen!2sus',
-		),
+		'attrs' => $acf_data['location'],
 		'innerBlocks' => array(),
 		'innerContent' => array(),
 	);
@@ -1037,96 +685,3 @@ function pns_cars_create_homepage_with_blocks() {
  */
 add_action( 'after_switch_theme', 'pns_cars_seed_content', 10 );
 add_action( 'after_switch_theme', 'pns_cars_create_homepage_with_blocks', 20 );
-
-/**
- * 5. Migrate ACF Footer Contact Values to Customizer (one-time)
- */
-function pns_cars_migrate_footer_contact_to_customizer() {
-	// Check if migration already ran
-	if ( get_option( 'pns_cars_customizer_migrated' ) ) {
-		return;
-	}
-
-	// Only migrate if ACF is available
-	if ( ! function_exists( 'get_field' ) ) {
-		return;
-	}
-
-	// Get ACF values
-	$acf_address = get_field( 'address_text', 'option' );
-	$acf_phone = get_field( 'contact_phone', 'option' );
-	$acf_email = get_field( 'contact_email', 'option' );
-
-	// Set customizer values only if ACF values exist
-	if ( ! empty( $acf_address ) ) {
-		set_theme_mod( 'pns_cars_address_text', $acf_address );
-	}
-	if ( ! empty( $acf_phone ) ) {
-		set_theme_mod( 'pns_cars_contact_phone', $acf_phone );
-	}
-	if ( ! empty( $acf_email ) ) {
-		set_theme_mod( 'pns_cars_contact_email', $acf_email );
-	}
-
-	// Mark migration as complete
-	update_option( 'pns_cars_customizer_migrated', true );
-}
-add_action( 'after_setup_theme', 'pns_cars_migrate_footer_contact_to_customizer' );
-
-/**
- * 6. Customizer Settings for Footer Contact Information
- */
-function pns_cars_customize_register( $wp_customize ) {
-	// Add PNS Cars section
-	$wp_customize->add_section( 'pns_cars_footer_contact', array(
-		'title'       => __( 'Footer Contact Info', 'pns-cars' ),
-		'description' => __( 'Update contact information displayed in the footer', 'pns-cars' ),
-		'priority'    => 130,
-	) );
-
-	// Address Text
-	$wp_customize->add_setting( 'pns_cars_address_text', array(
-		'default'           => "PNS Global Resources L.L.C\n5872 New Peachtree Rd Ste 103\nDoraville, GA 30340\n\nServing the Atlanta Metro Area",
-		'sanitize_callback' => 'wp_kses_post',
-		'transport'         => 'refresh',
-	) );
-
-	$wp_customize->add_control( 'pns_cars_address_text', array(
-		'label'       => __( 'Address', 'pns-cars' ),
-		'description' => __( 'Enter the company address (line breaks will be preserved)', 'pns-cars' ),
-		'section'     => 'pns_cars_footer_contact',
-		'type'        => 'textarea',
-		'priority'    => 10,
-	) );
-
-	// Phone Number
-	$wp_customize->add_setting( 'pns_cars_contact_phone', array(
-		'default'           => '(404) 555-0199',
-		'sanitize_callback' => 'sanitize_text_field',
-		'transport'         => 'refresh',
-	) );
-
-	$wp_customize->add_control( 'pns_cars_contact_phone', array(
-		'label'       => __( 'Phone Number', 'pns-cars' ),
-		'description' => __( 'Enter the contact phone number', 'pns-cars' ),
-		'section'     => 'pns_cars_footer_contact',
-		'type'        => 'text',
-		'priority'    => 20,
-	) );
-
-	// Email Address
-	$wp_customize->add_setting( 'pns_cars_contact_email', array(
-		'default'           => 'rentals@pnscars.com',
-		'sanitize_callback' => 'sanitize_email',
-		'transport'         => 'refresh',
-	) );
-
-	$wp_customize->add_control( 'pns_cars_contact_email', array(
-		'label'       => __( 'Email Address', 'pns-cars' ),
-		'description' => __( 'Enter the contact email address', 'pns-cars' ),
-		'section'     => 'pns_cars_footer_contact',
-		'type'        => 'email',
-		'priority'    => 30,
-	) );
-}
-add_action( 'customize_register', 'pns_cars_customize_register' );
